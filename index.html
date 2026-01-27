@@ -21,12 +21,14 @@
         .box-mut { background: rgba(30,0,0,0.6); border: 1px solid rgba(255,51,102,0.3); display: flex; justify-content: center; align-items: center; color: #ff3366; }
 
         .val-name { color: #00ffcc; font-weight: bold; }
-        .headline, .footer-text { position: absolute; width: 100%; text-align: center; font-weight: 900; text-transform: uppercase; z-index: 11; letter-spacing: 5px; text-shadow: 0 0 15px rgba(0,0,0,0.5); }
-        .headline { top: 25px; color: white; }
-        .footer-text { bottom: 25px; color: white; }
         
-        #creature-img { position: absolute; cursor: move; z-index: 5; width: 400px; filter: drop-shadow(0 0 15px rgba(0,0,0,0.4)); }
+        /* Updated Draggable Styling */
+        .headline, .footer-text { position: absolute; width: auto; text-align: center; font-weight: 900; text-transform: uppercase; z-index: 11; letter-spacing: 5px; text-shadow: 0 0 15px rgba(0,0,0,0.5); cursor: move; }
+        .draggable-img { position: absolute; cursor: move; z-index: 5; filter: drop-shadow(0 0 15px rgba(0,0,0,0.4)); }
+        .active-el { border: 1px dashed #00ffcc !important; }
+
         button { width: 100%; padding: 10px; background: #004444; color: #00ffcc; border: 1px solid #00ffcc; cursor: pointer; margin: 10px 0; border-radius: 4px; font-weight: bold; }
+        .btn-row { display: flex; gap: 5px; }
         input[type="range"] { width: 100%; accent-color: #00ffcc; cursor: pointer; margin-bottom: 10px; }
         .color-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
         hr { border: 0.5px solid #333; margin: 15px 0; }
@@ -45,12 +47,15 @@
             <div><label>FOOTER</label><input type="color" id="clrFoot" value="#ffffff"></div>
         </div>
         <hr>
-        <label>3. TITLE/FOOTER SIZE</label><input type="range" id="fSize" min="10" max="100" value="42">
+        <label>3. SELECTED ELEMENT SIZE</label><input type="range" id="fSize" min="10" max="900" value="42">
         <label>4. STATS FONT SIZE</label><input type="range" id="sSize" min="8" max="25" value="15">
         <hr>
-        <label>5. CREATURE IMAGE</label><input type="file" id="imgL">
-        <label>SIZE</label><input type="range" id="sz" min="50" max="950" value="400">
-        <button onclick="resetImg()">CENTER CREATURE</button>
+        <label>5. CREATURE IMAGES (Multiple)</label><input type="file" id="imgL" multiple>
+        <div class="btn-row">
+            <button onclick="changeZ(1)">FRONT</button>
+            <button onclick="changeZ(-1)">BACK</button>
+            <button onclick="deleteEl()" style="color:#ff3366">DEL</button>
+        </div>
         <hr>
         <label>HEADLINE</label><input type="text" id="hIn" value="FOR SALE">
         <label>FOOTER</label><input type="text" id="fIn" value="CONTACT: GRAVESTULLUK">
@@ -63,13 +68,13 @@
 
     <div id="poster-container">
         <div id="bg-overlay"></div>
-        <div class="headline" id="hOut">FOR SALE</div>
-        <img id="creature-img" src="" style="display:none;">
+        <div class="headline" id="hOut" style="top:25px; left:400px;">FOR SALE</div>
+        <div id="img-holder"></div>
         <div class="stats-overlay" id="ui">
             <div class="header-row" id="hRow"><span>Stat / Value</span><span style="text-align:center">Base</span><span style="text-align:center">Muts</span></div>
             <div id="stat-rows"></div>
         </div>
-        <div class="footer-text" id="fOut">CONTACT: GRAVESTULLUK</div>
+        <div class="footer-text" id="fOut" style="bottom:25px; left:400px;">CONTACT: GRAVESTULLUK</div>
     </div>
 
     <script>
@@ -84,12 +89,11 @@
                 <input type="text" class="refresh-input" id="n${i}" value="${defaultNames[i]} 0">
                 <input type="text" class="refresh-input" id="b${i}" value="${defaultBases[i]}">
             </div>`;
-            let mutVal = (i === 6) ? "N/A" : "255";
             rowsHtml += `
             <div class="stat-line-wrapper" id="sw${i}">
                 <div class="box-main" id="bm${i}"><span class="val-name" id="ln${i}"></span></div>
                 <div class="box-base"><span id="lb${i}"></span></div>
-                <div class="box-mut"><span>${mutVal}</span></div>
+                <div class="box-mut"><span>${(i===6)?'N/A':'255'}</span></div>
             </div>`;
         }
         $('input-fields').innerHTML = inputHtml;
@@ -104,36 +108,78 @@
             }
         };
 
-        // UI Listeners
-        $('dark').addEventListener('input', () => { $('bg-overlay').style.background = `rgba(0,0,0,${$('dark').value/100})`; });
-        $('fSize').addEventListener('input', () => { $('hOut').style.fontSize = $('fSize').value + 'px'; $('fOut').style.fontSize = ($('fSize').value * 0.6) + 'px'; });
-        $('sSize').addEventListener('input', () => { document.querySelectorAll('.stat-line-wrapper').forEach(l => l.style.fontSize = $('sSize').value + 'px'); });
-        $('sz').addEventListener('input', () => { $('creature-img').style.width = $('sz').value + 'px'; });
+        let activeEl = null, drag = false, sx, sy;
 
-        // Color Listeners
-        $('clrUI').addEventListener('input', () => {
+        function makeDraggable(el) {
+            el.onmousedown = e => {
+                if(activeEl) activeEl.classList.remove('active-el');
+                activeEl = el;
+                activeEl.classList.add('active-el');
+                drag = true;
+                sx = e.clientX - el.offsetLeft;
+                sy = e.clientY - el.offsetTop;
+                e.preventDefault();
+            };
+        }
+
+        makeDraggable($('hOut'));
+        makeDraggable($('fOut'));
+
+        window.onmousemove = e => {
+            if(drag && activeEl) {
+                activeEl.style.left = (e.clientX - sx) + 'px';
+                activeEl.style.top = (e.clientY - sy) + 'px';
+            }
+        };
+        window.onmouseup = () => drag = false;
+
+        $('imgL').onchange = e => {
+            Array.from(e.target.files).forEach(file => {
+                const r = new FileReader();
+                r.onload = ev => {
+                    const img = document.createElement('img');
+                    img.src = ev.target.result;
+                    img.className = 'draggable-img';
+                    img.style.width = '400px';
+                    img.style.left = '450px';
+                    img.style.top = '100px';
+                    img.style.zIndex = 5;
+                    makeDraggable(img);
+                    $('img-holder').appendChild(img);
+                };
+                r.readAsDataURL(file);
+            });
+        };
+
+        $('fSize').oninput = () => {
+            if(!activeEl) return;
+            if(activeEl.tagName === 'IMG') activeEl.style.width = $('fSize').value + 'px';
+            else activeEl.style.fontSize = $('fSize').value + 'px';
+        };
+
+        const changeZ = (v) => { if(activeEl) activeEl.style.zIndex = (parseInt(activeEl.style.zIndex)||5) + v; };
+        const deleteEl = () => { if(activeEl && activeEl.tagName === 'IMG') activeEl.remove(); };
+
+        $('dark').oninput = () => { $('bg-overlay').style.background = `rgba(0,0,0,${$('dark').value/100})`; };
+        $('sSize').oninput = () => { document.querySelectorAll('.stat-line-wrapper').forEach(l => l.style.fontSize = $('sSize').value + 'px'); };
+        
+        $('clrUI').oninput = () => {
             const c = $('clrUI').value;
             document.querySelectorAll('.box-main').forEach(b => b.style.borderColor = c);
             document.querySelectorAll('.val-name').forEach(n => n.style.color = c);
             $('hRow').style.color = c;
-        });
-
-        $('clrBox').addEventListener('input', () => {
+        };
+        $('clrBox').oninput = () => {
             const c = $('clrBox').value;
-            document.querySelectorAll('.box-main').forEach(b => b.style.backgroundColor = c + 'B3'); // B3 = 70% opacity
-            document.querySelectorAll('.box-base').forEach(b => b.style.backgroundColor = c + 'CC'); // CC = 80% opacity
-        });
-
-        $('clrHead').addEventListener('input', () => { $('hOut').style.color = $('clrHead').value; });
-        $('clrFoot').addEventListener('input', () => { $('fOut').style.color = $('clrFoot').value; });
-
-        // File Loaders
+            document.querySelectorAll('.box-main').forEach(b => b.style.backgroundColor = c + 'B3');
+            document.querySelectorAll('.box-base').forEach(b => b.style.backgroundColor = c + 'CC');
+        };
+        $('clrHead').oninput = () => { $('hOut').style.color = $('clrHead').value; };
+        $('clrFoot').oninput = () => { $('fOut').style.color = $('clrFoot').value; };
         $('bgL').onchange = e => { const r = new FileReader(); r.onload = ev => $('poster-container').style.backgroundImage = `url(${ev.target.result})`; r.readAsDataURL(e.target.files[0]); };
-        $('imgL').onchange = e => { const r = new FileReader(); r.onload = ev => { $('creature-img').src = ev.target.result; $('creature-img').style.display = 'block'; resetImg(); }; r.readAsDataURL(e.target.files[0]); };
-        
-        const resetImg = () => { $('creature-img').style.left = '450px'; $('creature-img').style.top = '100px'; };
 
         function downloadPoster() {
+            if(activeEl) activeEl.classList.remove('active-el');
             html2canvas($("poster-container")).then(canvas => {
                 let link = document.createElement('a');
                 link.download = 'ark-poster.png';
@@ -142,18 +188,8 @@
             });
         }
 
-        let drag = false, sx, sy;
-        $('creature-img').onmousedown = e => { drag = true; sx = e.clientX - $('creature-img').offsetLeft; sy = e.clientY - $('creature-img').offsetTop; e.preventDefault(); };
-        window.onmousemove = e => { if(drag) { $('creature-img').style.left = (e.clientX - sx) + 'px'; $('creature-img').style.top = (e.clientY - sy) + 'px'; } };
-        window.onmouseup = () => drag = false;
-
         document.querySelectorAll('input[type="text"]').forEach(i => i.addEventListener('input', refreshAll));
-        
         refreshAll();
-        $('fSize').dispatchEvent(new Event('input'));
-        $('sSize').dispatchEvent(new Event('input'));
-        $('clrUI').dispatchEvent(new Event('input'));
-        $('clrBox').dispatchEvent(new Event('input'));
     </script>
 </body>
 </html>

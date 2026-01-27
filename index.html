@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ARK Sales Tool - Color Pro</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body { background: #0a0a0a; color: #00ffcc; font-family: 'Segoe UI', sans-serif; display: flex; padding: 15px; gap: 15px; }
+        #controls { width: 380px; background: #1a1a1a; padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; height: 95vh; overflow-y: auto; font-size: 11px; }
+        input[type="text"] { width: 100%; background: #000; border: 1px solid #333; color: white; padding: 5px; margin-bottom: 5px; border-radius: 4px; }
+        .stat-input-row { display: grid; grid-template-columns: 1.5fr 1fr; gap: 5px; margin-bottom: 5px; }
+        
+        #poster-container { position: relative; width: 1000px; height: 562px; background: #000 center/cover no-repeat; overflow: hidden; border: 1px solid #333; }
+        #bg-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.3); pointer-events: none; z-index: 1; }
+        
+        .stats-overlay { position: absolute; left: 40px; top: 110px; z-index: 10; pointer-events: none; }
+        .header-row { display: grid; grid-template-columns: 140px 80px 80px; gap: 5px; padding-left: 5px; margin-bottom: 5px; font-size: 10px; color: #00ffcc; text-transform: uppercase; font-weight: bold; }
+        .stat-line-wrapper { display: grid; grid-template-columns: 140px 80px 80px; gap: 5px; margin-bottom: 5px; }
+
+        .box-main { background: rgba(0,40,40,0.7); border-left: 4px solid #00ffcc; padding: 6px 10px; display: flex; align-items: center; backdrop-filter: blur(2px); }
+        .box-base { background: rgba(0,20,20,0.8); border: 1px solid rgba(0,255,204,0.3); display: flex; justify-content: center; align-items: center; color: #fff; }
+        .box-mut { background: rgba(30,0,0,0.6); border: 1px solid rgba(255,51,102,0.3); display: flex; justify-content: center; align-items: center; color: #ff3366; }
+
+        .val-name { color: #00ffcc; font-weight: bold; }
+        .headline, .footer-text { position: absolute; width: 100%; text-align: center; font-weight: 900; text-transform: uppercase; z-index: 11; letter-spacing: 5px; text-shadow: 0 0 15px rgba(0,0,0,0.5); }
+        .headline { top: 25px; color: white; }
+        .footer-text { bottom: 25px; color: white; }
+        
+        #creature-img { position: absolute; cursor: move; z-index: 5; width: 400px; filter: drop-shadow(0 0 15px rgba(0,0,0,0.4)); }
+        button { width: 100%; padding: 10px; background: #004444; color: #00ffcc; border: 1px solid #00ffcc; cursor: pointer; margin: 10px 0; border-radius: 4px; font-weight: bold; }
+        input[type="range"] { width: 100%; accent-color: #00ffcc; cursor: pointer; margin-bottom: 10px; }
+        .color-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        hr { border: 0.5px solid #333; margin: 15px 0; }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <h3>ARK PRO COLOR EDITOR</h3>
+        <label>1. TEMPLATE BACKGROUND</label><input type="file" id="bgL">
+        <label>2. DARKEN BACKGROUND</label><input type="range" id="dark" min="0" max="100" value="30">
+        <hr>
+        <div class="color-grid">
+            <div><label>UI ACCENT</label><input type="color" id="clrUI" value="#00ffcc"></div>
+            <div><label>BOX FILL</label><input type="color" id="clrBox" value="#002828"></div>
+            <div><label>HEADLINE</label><input type="color" id="clrHead" value="#ffffff"></div>
+            <div><label>FOOTER</label><input type="color" id="clrFoot" value="#ffffff"></div>
+        </div>
+        <hr>
+        <label>3. TITLE/FOOTER SIZE</label><input type="range" id="fSize" min="10" max="100" value="42">
+        <label>4. STATS FONT SIZE</label><input type="range" id="sSize" min="8" max="25" value="15">
+        <hr>
+        <label>5. CREATURE IMAGE</label><input type="file" id="imgL">
+        <label>SIZE</label><input type="range" id="sz" min="50" max="950" value="400">
+        <button onclick="resetImg()">CENTER CREATURE</button>
+        <hr>
+        <label>HEADLINE</label><input type="text" id="hIn" value="FOR SALE">
+        <label>FOOTER</label><input type="text" id="fIn" value="CONTACT: GRAVESTULLUK">
+        <hr>
+        <div class="stat-input-row" style="color:#aaa; font-size:9px;"><span>NAME / VAL</span><span>BASE VALUE</span></div>
+        <div id="input-fields"></div>
+        <hr>
+        <button onclick="downloadPoster()" style="background: #00ffcc; color: #000;">DOWNLOAD PNG</button>
+    </div>
+
+    <div id="poster-container">
+        <div id="bg-overlay"></div>
+        <div class="headline" id="hOut">FOR SALE</div>
+        <img id="creature-img" src="" style="display:none;">
+        <div class="stats-overlay" id="ui">
+            <div class="header-row" id="hRow"><span>Stat / Value</span><span style="text-align:center">Base</span><span style="text-align:center">Muts</span></div>
+            <div id="stat-rows"></div>
+        </div>
+        <div class="footer-text" id="fOut">CONTACT: GRAVESTULLUK</div>
+    </div>
+
+    <script>
+        const $ = id => document.getElementById(id);
+        const defaultNames = ["HEALTH", "STAMINA", "OXYGEN", "FOOD", "WEIGHT", "MELEE", "SPEED"];
+        const defaultBases = ["15000", "2000", "150", "8000", "1200", "600%", "100%"];
+
+        let inputHtml = '';
+        let rowsHtml = '';
+        for(let i=0; i<7; i++) {
+            inputHtml += `<div class="stat-input-row">
+                <input type="text" class="refresh-input" id="n${i}" value="${defaultNames[i]} 0">
+                <input type="text" class="refresh-input" id="b${i}" value="${defaultBases[i]}">
+            </div>`;
+            let mutVal = (i === 6) ? "N/A" : "255";
+            rowsHtml += `
+            <div class="stat-line-wrapper" id="sw${i}">
+                <div class="box-main" id="bm${i}"><span class="val-name" id="ln${i}"></span></div>
+                <div class="box-base"><span id="lb${i}"></span></div>
+                <div class="box-mut"><span>${mutVal}</span></div>
+            </div>`;
+        }
+        $('input-fields').innerHTML = inputHtml;
+        $('stat-rows').innerHTML = rowsHtml;
+
+        const refreshAll = () => {
+            $('hOut').innerText = $('hIn').value;
+            $('fOut').innerText = $('fIn').value;
+            for(let i=0; i<7; i++) {
+                $('ln'+i).innerText = $('n'+i).value;
+                $('lb'+i).innerText = $('b'+i).value;
+            }
+        };
+
+        // UI Listeners
+        $('dark').addEventListener('input', () => { $('bg-overlay').style.background = `rgba(0,0,0,${$('dark').value/100})`; });
+        $('fSize').addEventListener('input', () => { $('hOut').style.fontSize = $('fSize').value + 'px'; $('fOut').style.fontSize = ($('fSize').value * 0.6) + 'px'; });
+        $('sSize').addEventListener('input', () => { document.querySelectorAll('.stat-line-wrapper').forEach(l => l.style.fontSize = $('sSize').value + 'px'); });
+        $('sz').addEventListener('input', () => { $('creature-img').style.width = $('sz').value + 'px'; });
+
+        // Color Listeners
+        $('clrUI').addEventListener('input', () => {
+            const c = $('clrUI').value;
+            document.querySelectorAll('.box-main').forEach(b => b.style.borderColor = c);
+            document.querySelectorAll('.val-name').forEach(n => n.style.color = c);
+            $('hRow').style.color = c;
+        });
+
+        $('clrBox').addEventListener('input', () => {
+            const c = $('clrBox').value;
+            document.querySelectorAll('.box-main').forEach(b => b.style.backgroundColor = c + 'B3'); // B3 = 70% opacity
+            document.querySelectorAll('.box-base').forEach(b => b.style.backgroundColor = c + 'CC'); // CC = 80% opacity
+        });
+
+        $('clrHead').addEventListener('input', () => { $('hOut').style.color = $('clrHead').value; });
+        $('clrFoot').addEventListener('input', () => { $('fOut').style.color = $('clrFoot').value; });
+
+        // File Loaders
+        $('bgL').onchange = e => { const r = new FileReader(); r.onload = ev => $('poster-container').style.backgroundImage = `url(${ev.target.result})`; r.readAsDataURL(e.target.files[0]); };
+        $('imgL').onchange = e => { const r = new FileReader(); r.onload = ev => { $('creature-img').src = ev.target.result; $('creature-img').style.display = 'block'; resetImg(); }; r.readAsDataURL(e.target.files[0]); };
+        
+        const resetImg = () => { $('creature-img').style.left = '450px'; $('creature-img').style.top = '100px'; };
+
+        function downloadPoster() {
+            html2canvas($("poster-container")).then(canvas => {
+                let link = document.createElement('a');
+                link.download = 'ark-poster.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        }
+
+        let drag = false, sx, sy;
+        $('creature-img').onmousedown = e => { drag = true; sx = e.clientX - $('creature-img').offsetLeft; sy = e.clientY - $('creature-img').offsetTop; e.preventDefault(); };
+        window.onmousemove = e => { if(drag) { $('creature-img').style.left = (e.clientX - sx) + 'px'; $('creature-img').style.top = (e.clientY - sy) + 'px'; } };
+        window.onmouseup = () => drag = false;
+
+        document.querySelectorAll('input[type="text"]').forEach(i => i.addEventListener('input', refreshAll));
+        
+        refreshAll();
+        $('fSize').dispatchEvent(new Event('input'));
+        $('sSize').dispatchEvent(new Event('input'));
+        $('clrUI').dispatchEvent(new Event('input'));
+        $('clrBox').dispatchEvent(new Event('input'));
+    </script>
+</body>
+</html>

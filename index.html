@@ -4,17 +4,25 @@
     <title>ARK Sales Tool - Color Pro</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        body { background: #0a0a0a; color: #00ffcc; font-family: 'Segoe UI', sans-serif; display: flex; padding: 15px; gap: 15px; }
+        * { box-sizing: border-box; }
+        body { background: #0a0a0a; color: #00ffcc; font-family: 'Segoe UI', sans-serif; display: flex; padding: 15px; gap: 15px; margin: 0; }
         #controls { width: 380px; background: #1a1a1a; padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; height: 95vh; overflow-y: auto; font-size: 11px; }
-        input[type="text"] { width: 100%; background: #000; border: 1px solid #333; color: white; padding: 5px; margin-bottom: 5px; border-radius: 4px; }
+        input[type="text"], select, textarea { width: 100%; background: #000; border: 1px solid #333; color: white; padding: 5px; margin-bottom: 5px; border-radius: 4px; font-family: inherit; }
+        textarea { height: 60px; resize: vertical; }
         .stat-input-row { display: grid; grid-template-columns: 1.5fr 1fr; gap: 5px; margin-bottom: 5px; }
         
-        #poster-container { position: relative; width: 1000px; height: 562px; background: #000 center/cover no-repeat; overflow: hidden; border: 1px solid #333; }
+        #poster-container { position: relative; width: 1000px; height: 562px; background: #000 center/cover no-repeat; overflow: hidden; border: none; outline: none; }
         #bg-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.3); pointer-events: none; z-index: 1; }
         
-        .stats-overlay { position: absolute; left: 40px; top: 110px; z-index: 10; pointer-events: none; }
-        .header-row { display: grid; grid-template-columns: 140px 80px 80px; gap: 5px; padding-left: 5px; margin-bottom: 5px; font-size: 10px; color: #00ffcc; text-transform: uppercase; font-weight: bold; }
-        .stat-line-wrapper { display: grid; grid-template-columns: 140px 80px 80px; gap: 5px; margin-bottom: 5px; }
+        .headline, .footer-text { position: absolute; width: auto; text-align: center; font-weight: 900; text-transform: uppercase; z-index: 11; letter-spacing: 5px; cursor: move; white-space: pre-wrap; line-height: 1.2; }
+        
+        .stats-overlay { position: absolute; left: 40px; top: 110px; z-index: 10; cursor: move; padding: 10px; border: 1px solid transparent; }
+        .draggable-img { position: absolute; cursor: move; z-index: 5; filter: drop-shadow(0 0 15px rgba(0,0,0,0.4)); }
+        
+        .active-el { border: 1px dashed #00ffcc !important; }
+
+        .header-row { display: grid; grid-template-columns: 140px 80px 80px; gap: 5px; padding-left: 5px; margin-bottom: 5px; font-size: 10px; color: #00ffcc; text-transform: uppercase; font-weight: bold; pointer-events: none; }
+        .stat-line-wrapper { display: grid; grid-template-columns: 140px 80px 80px; gap: 5px; margin-bottom: 5px; pointer-events: none; }
 
         .box-main { background: rgba(0,40,40,0.7); border-left: 4px solid #00ffcc; padding: 6px 10px; display: flex; align-items: center; backdrop-filter: blur(2px); }
         .box-base { background: rgba(0,20,20,0.8); border: 1px solid rgba(0,255,204,0.3); display: flex; justify-content: center; align-items: center; color: #fff; }
@@ -22,11 +30,6 @@
 
         .val-name { color: #00ffcc; font-weight: bold; }
         
-        /* Updated Draggable Styling */
-        .headline, .footer-text { position: absolute; width: auto; text-align: center; font-weight: 900; text-transform: uppercase; z-index: 11; letter-spacing: 5px; text-shadow: 0 0 15px rgba(0,0,0,0.5); cursor: move; }
-        .draggable-img { position: absolute; cursor: move; z-index: 5; filter: drop-shadow(0 0 15px rgba(0,0,0,0.4)); }
-        .active-el { border: 1px dashed #00ffcc !important; }
-
         button { width: 100%; padding: 10px; background: #004444; color: #00ffcc; border: 1px solid #00ffcc; cursor: pointer; margin: 10px 0; border-radius: 4px; font-weight: bold; }
         .btn-row { display: flex; gap: 5px; }
         input[type="range"] { width: 100%; accent-color: #00ffcc; cursor: pointer; margin-bottom: 10px; }
@@ -45,20 +48,33 @@
             <div><label>BOX FILL</label><input type="color" id="clrBox" value="#002828"></div>
             <div><label>HEADLINE</label><input type="color" id="clrHead" value="#ffffff"></div>
             <div><label>FOOTER</label><input type="color" id="clrFoot" value="#ffffff"></div>
+            <div><label>TEXT SHADOW</label><input type="color" id="clrShadow" value="#000000"></div>
         </div>
         <hr>
-        <label>3. SELECTED ELEMENT SIZE</label><input type="range" id="fSize" min="10" max="900" value="42">
-        <label>4. STATS FONT SIZE</label><input type="range" id="sSize" min="8" max="25" value="15">
+        <label>3. FONT STYLE</label>
+        <select id="fontSelect">
+            <option value="'Segoe UI', sans-serif">Segoe UI</option>
+            <option value="'Arial Black', sans-serif">Arial Black</option>
+            <option value="'Impact', sans-serif">Impact</option>
+            <option value="'Courier New', monospace">Courier New</option>
+            <option value="'Georgia', serif">Georgia</option>
+            <option value="'Verdana', sans-serif">Verdana</option>
+        </select>
         <hr>
-        <label>5. CREATURE IMAGES (Multiple)</label><input type="file" id="imgL" multiple>
+        <label>4. SELECTED ELEMENT SIZE</label><input type="range" id="fSize" min="10" max="950" value="42">
+        <label>5. STATS FONT SIZE</label><input type="range" id="sSize" min="8" max="25" value="15">
+        <hr>
+        <label>6. CREATURE IMAGES</label><input type="file" id="imgL" multiple>
         <div class="btn-row">
             <button onclick="changeZ(1)">FRONT</button>
             <button onclick="changeZ(-1)">BACK</button>
             <button onclick="deleteEl()" style="color:#ff3366">DEL</button>
         </div>
         <hr>
-        <label>HEADLINE</label><input type="text" id="hIn" value="FOR SALE">
-        <label>FOOTER</label><input type="text" id="fIn" value="CONTACT: GRAVESTULLUK">
+        <label>HEADLINE (Multi-line)</label>
+        <textarea id="hIn">FOR SALE</textarea>
+        <label>FOOTER (Multi-line)</label>
+        <textarea id="fIn">CONTACT: GRAVESTULLUK</textarea>
         <hr>
         <div class="stat-input-row" style="color:#aaa; font-size:9px;"><span>NAME / VAL</span><span>BASE VALUE</span></div>
         <div id="input-fields"></div>
@@ -68,13 +84,15 @@
 
     <div id="poster-container">
         <div id="bg-overlay"></div>
-        <div class="headline" id="hOut" style="top:25px; left:400px;">FOR SALE</div>
+        <div class="headline" id="hOut" style="top:25px; left:400px; text-shadow: 0 0 15px #000000;">FOR SALE</div>
         <div id="img-holder"></div>
+        
         <div class="stats-overlay" id="ui">
             <div class="header-row" id="hRow"><span>Stat / Value</span><span style="text-align:center">Base</span><span style="text-align:center">Muts</span></div>
             <div id="stat-rows"></div>
         </div>
-        <div class="footer-text" id="fOut" style="bottom:25px; left:400px;">CONTACT: GRAVESTULLUK</div>
+
+        <div class="footer-text" id="fOut" style="bottom:25px; left:400px; text-shadow: 0 0 15px #000000;">CONTACT: GRAVESTULLUK</div>
     </div>
 
     <script>
@@ -90,7 +108,7 @@
                 <input type="text" class="refresh-input" id="b${i}" value="${defaultBases[i]}">
             </div>`;
             rowsHtml += `
-            <div class="stat-line-wrapper" id="sw${i}">
+            <div class="stat-line-wrapper">
                 <div class="box-main" id="bm${i}"><span class="val-name" id="ln${i}"></span></div>
                 <div class="box-base"><span id="lb${i}"></span></div>
                 <div class="box-mut"><span>${(i===6)?'N/A':'255'}</span></div>
@@ -101,7 +119,7 @@
 
         const refreshAll = () => {
             $('hOut').innerText = $('hIn').value;
-            $('fOut').innerText = $('fIn').value;
+            $('fOut').innerText = $('fOut').value = $('fIn').value;
             for(let i=0; i<7; i++) {
                 $('ln'+i).innerText = $('n'+i).value;
                 $('lb'+i).innerText = $('b'+i).value;
@@ -119,11 +137,13 @@
                 sx = e.clientX - el.offsetLeft;
                 sy = e.clientY - el.offsetTop;
                 e.preventDefault();
+                e.stopPropagation();
             };
         }
 
         makeDraggable($('hOut'));
         makeDraggable($('fOut'));
+        makeDraggable($('ui'));
 
         window.onmousemove = e => {
             if(drag && activeEl) {
@@ -132,6 +152,12 @@
             }
         };
         window.onmouseup = () => drag = false;
+
+        $('fontSelect').onchange = () => {
+            const f = $('fontSelect').value;
+            $('hOut').style.fontFamily = f;
+            $('fOut').style.fontFamily = f;
+        };
 
         $('imgL').onchange = e => {
             Array.from(e.target.files).forEach(file => {
@@ -154,6 +180,7 @@
         $('fSize').oninput = () => {
             if(!activeEl) return;
             if(activeEl.tagName === 'IMG') activeEl.style.width = $('fSize').value + 'px';
+            else if(activeEl.id === 'ui') activeEl.style.transform = `scale(${$('fSize').value / 100})`;
             else activeEl.style.fontSize = $('fSize').value + 'px';
         };
 
@@ -176,19 +203,42 @@
         };
         $('clrHead').oninput = () => { $('hOut').style.color = $('clrHead').value; };
         $('clrFoot').oninput = () => { $('fOut').style.color = $('clrFoot').value; };
+        $('clrShadow').oninput = () => {
+            const c = $('clrShadow').value;
+            $('hOut').style.textShadow = `0 0 15px ${c}`;
+            $('fOut').style.textShadow = `0 0 15px ${c}`;
+        };
+
         $('bgL').onchange = e => { const r = new FileReader(); r.onload = ev => $('poster-container').style.backgroundImage = `url(${ev.target.result})`; r.readAsDataURL(e.target.files[0]); };
 
         function downloadPoster() {
             if(activeEl) activeEl.classList.remove('active-el');
-            html2canvas($("poster-container")).then(canvas => {
+            
+            // Final border/scroll fix
+            const container = $("poster-container");
+            html2canvas(container, {
+                backgroundColor: null,
+                scale: 2, // High res output
+                logging: false,
+                useCORS: true,
+                width: 1000,
+                height: 562,
+                scrollX: -window.scrollX,
+                scrollY: -window.scrollY,
+                windowWidth: document.documentElement.offsetWidth,
+                windowHeight: document.documentElement.offsetHeight
+            }).then(canvas => {
                 let link = document.createElement('a');
-                link.download = 'ark-poster.png';
-                link.href = canvas.toDataURL();
+                link.download = 'ark-sales-poster.png';
+                link.href = canvas.toDataURL("image/png");
                 link.click();
             });
         }
 
-        document.querySelectorAll('input[type="text"]').forEach(i => i.addEventListener('input', refreshAll));
+        $('hIn').addEventListener('input', refreshAll);
+        $('fIn').addEventListener('input', refreshAll);
+        document.querySelectorAll('.refresh-input').forEach(i => i.addEventListener('input', refreshAll));
+        
         refreshAll();
     </script>
 </body>

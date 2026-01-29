@@ -6,8 +6,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Orbitron:wght@400;900&family=Roboto+Condensed:wght@700&family=Anton&family=Fira+Sans+Extra+Condensed:wght@800&family=Oswald:wght@700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
-        body { background: #0a0a0a; color: #00ffcc; font-family: 'Segoe UI', sans-serif; display: flex; padding: 15px; gap: 15px; margin: 0; }
-        #controls { width: 380px; background: #1a1a1a; padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; height: 95vh; overflow-y: auto; font-size: 11px; }
+        body { background: #050505; color: #ffffff; font-family: 'Segoe UI', sans-serif; display: flex; padding: 15px; gap: 15px; margin: 0; }
+        #controls { width: 380px; background: #1a1a1a; padding: 15px; border-radius: 10px; border: 1px solid #0055ff; height: 95vh; overflow-y: auto; font-size: 11px; }
         input[type="text"], select, textarea { width: 100%; background: #000; border: 1px solid #333; color: white; padding: 5px; margin-bottom: 5px; border-radius: 4px; font-family: inherit; }
         textarea { height: 60px; resize: vertical; }
         .stat-input-row { display: grid; grid-template-columns: 1.5fr 1fr; gap: 5px; margin-bottom: 5px; }
@@ -15,68 +15,64 @@
         #poster-container { position: relative; width: 1000px; height: 562px; background: #000 center/cover no-repeat; overflow: hidden; border: none; }
         #bg-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.3); pointer-events: none; z-index: 1; }
         
-        .headline, .footer-text { position: absolute; width: auto; text-align: center; font-weight: 900; text-transform: uppercase; z-index: 11; letter-spacing: 5px; cursor: move; white-space: pre-wrap; line-height: 1.2; }
-        
-        /* Stats Overlay - Added transform-origin for better scaling */
-        .stats-overlay { 
-            position: absolute; 
-            left: 40px; 
-            top: 110px; 
-            z-index: 10; 
-            cursor: move; 
-            padding: 10px; 
-            border: 1px solid transparent; 
-            transform-origin: top left; 
-        }
+        /* Alignment Guides */
+        #v-guide { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: rgba(255, 255, 255, 0.3); z-index: 100; display: none; pointer-events: none; }
+        #h-guide { position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: rgba(255, 255, 255, 0.3); z-index: 100; display: none; pointer-events: none; }
 
-        .active-el { border: 1px dashed #00ffcc !important; }
-        .header-row { display: grid; grid-template-columns: 140px 80px 80px; gap: 5px; padding-left: 5px; margin-bottom: 5px; font-size: 10px; color: #00ffcc; text-transform: uppercase; font-weight: bold; pointer-events: none; }
-        .stat-line-wrapper { display: grid; grid-template-columns: 140px 80px 80px; gap: 5px; margin-bottom: 5px; pointer-events: none; }
-        
-        .box-main, .box-base, .box-mut { border: 1px solid #00ffcc; padding: 6px 10px; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(2px); color: #fff; }
-        .box-main { justify-content: flex-start; border-left-width: 4px; }
-        .val-name, .base-val, .mut-val { font-weight: bold; color: #00ffcc; }
-        
+        .headline, .footer-text { position: absolute; width: auto; text-align: center; font-weight: 900; text-transform: uppercase; z-index: 11; letter-spacing: 5px; cursor: move; white-space: pre-wrap; line-height: 1.2; }
+        .stats-overlay { position: absolute; left: 40px; top: 110px; z-index: 10; cursor: move; padding: 10px; border: 1px solid transparent; transform-origin: top left; }
         .draggable-img { position: absolute; cursor: move; z-index: 5; filter: drop-shadow(0 0 15px rgba(0,0,0,0.4)); }
         
-        button { width: 100%; padding: 10px; background: #004444; color: #00ffcc; border: 1px solid #00ffcc; cursor: pointer; margin: 5px 0; border-radius: 4px; font-weight: bold; }
+        .active-el { border: 1px dashed #ffffff !important; }
+        .header-row { display: grid; grid-template-columns: 140px 80px 80px; gap: 5px; padding-left: 5px; margin-bottom: 5px; font-size: 10px; text-transform: uppercase; font-weight: bold; pointer-events: none; }
+        .stat-line-wrapper { display: grid; grid-template-columns: 140px 80px 80px; gap: 5px; margin-bottom: 5px; pointer-events: none; }
+        
+        .box-main, .box-base, .box-mut { border: 1px solid #0055ff; padding: 6px 10px; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(2px); color: #fff; }
+        .box-main { justify-content: flex-start; border-left-width: 4px; }
+        
+        button { width: 100%; padding: 10px; background: #002244; color: #ffffff; border: 1px solid #0055ff; cursor: pointer; margin: 5px 0; border-radius: 4px; font-weight: bold; }
+        button:hover { background: #003366; }
         .btn-row { display: flex; gap: 5px; }
-        .save-row { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 10px; }
-        input[type="range"] { width: 100%; accent-color: #00ffcc; cursor: pointer; margin-bottom: 10px; }
+        input[type="range"] { width: 100%; accent-color: #0055ff; cursor: pointer; margin-bottom: 10px; }
         .color-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
         hr { border: 0.5px solid #333; margin: 15px 0; }
+        #importFile { display: none; }
     </style>
 </head>
 <body>
     <div id="controls">
         <h3>ARK PRO COLOR EDITOR</h3>
-        <div class="save-row">
-            <button onclick="saveProject()" style="background:#006644">SAVE PROJECT</button>
-            <button onclick="loadProject()" style="background:#444400">LOAD PROJECT</button>
+        <label>PROJECT FILENAME</label>
+        <input type="text" id="projName" placeholder="e.g. Blue_Rex_Sales">
+        <div class="save-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+            <button onclick="exportProject()" style="background:#004400; border-color:#00ff00;">EXPORT TO PC</button>
+            <button onclick="$('importFile').click()" style="background:#444400; border-color:#ffff00;">IMPORT FROM PC</button>
+            <input type="file" id="importFile" accept=".json" onchange="importProject(event)">
         </div>
+        <hr>
+        <label>ALIGNMENT TOOLS</label>
+        <button onclick="toggleGuides()" style="background: #333;">TOGGLE CENTER GUIDES</button>
+        <button onclick="autoCenterEl()" style="background: #0055ff; color: white;">SNAP ACTIVE TO CENTER</button>
         <hr>
         <label>1. BACKGROUND IMAGE</label><input type="file" id="bgL">
         <label>2. DARKEN BACKGROUND</label><input type="range" id="dark" min="0" max="100" value="30">
         <hr>
         <div class="color-grid">
-            <div><label>UI ACCENT</label><input type="color" id="clrUI" value="#00ffcc"></div>
-            <div><label>BOX FILL</label><input type="color" id="clrBox" value="#002828"></div>
-            <div><label>HEADLINE</label><input type="color" id="clrHead" value="#ffffff"></div>
+            <div><label>UI ACCENT</label><input type="color" id="clrUI" value="#0055ff"></div>
+            <div><label>BOX FILL</label><input type="color" id="clrBox" value="#001133"></div>
+            <div><label>HEADLINE</label><input type="color" id="clrHead" value="#ff0000"></div>
             <div><label>FOOTER</label><input type="color" id="clrFoot" value="#ffffff"></div>
             <div><label>TEXT SHADOW</label><input type="color" id="clrShadow" value="#000000"></div>
         </div>
         <hr>
         <label>3. FONT STYLE</label>
         <select id="fontSelect">
-            <option value="'Segoe UI', sans-serif">Segoe UI</option>
             <option value="'Bebas Neue', cursive">Bebas Neue</option>
+            <option value="'Segoe UI', sans-serif">Segoe UI</option>
             <option value="'Orbitron', sans-serif">Orbitron</option>
             <option value="'Anton', sans-serif">Anton</option>
             <option value="'Oswald', sans-serif">Oswald</option>
-            <option value="'Roboto Condensed', sans-serif">Roboto Condensed</option>
-            <option value="'Share Tech Mono', monospace">Share Tech</option>
-            <option value="'Fira Sans Extra Condensed', sans-serif">Fira Extra</option>
-            <option value="'Impact', sans-serif">Classic Impact</option>
+            <option value="'Impact', sans-serif">Impact</option>
         </select>
         <hr>
         <label>4. SELECTED ELEMENT SIZE</label><input type="range" id="fSize" min="5" max="500" value="100">
@@ -86,7 +82,7 @@
         <div class="btn-row">
             <button onclick="changeZ(1)">FRONT</button>
             <button onclick="changeZ(-1)">BACK</button>
-            <button onclick="deleteEl()" style="color:#ff3366">DEL</button>
+            <button onclick="deleteEl()" style="color:#ff3366; border-color:#ff3366;">DEL</button>
         </div>
         <hr>
         <label>HEADLINE</label><textarea id="hIn">FOR SALE</textarea>
@@ -94,18 +90,20 @@
         <hr>
         <div id="input-fields"></div>
         <hr>
-        <button onclick="downloadPoster()" style="background: #00ffcc; color: #000;">DOWNLOAD PNG</button>
+        <button onclick="downloadPoster()" style="background: #ffffff; color: #000; border-color: #0055ff;">DOWNLOAD PNG</button>
     </div>
 
     <div id="poster-container">
+        <div id="v-guide"></div>
+        <div id="h-guide"></div>
         <div id="bg-overlay"></div>
-        <div class="headline" id="hOut" style="top:25px; left:400px; text-shadow: 0 0 15px #000000;">FOR SALE</div>
+        <div class="headline" id="hOut" style="top:25px; left:400px; text-shadow: 0 0 15px #000000; color:#ff0000; font-family:'Bebas Neue'; font-size: 60px;">FOR SALE</div>
         <div id="img-holder"></div>
         <div class="stats-overlay" id="ui">
             <div class="header-row" id="hRow"><span>Stat / Value</span><span style="text-align:center">Base</span><span style="text-align:center">Muts</span></div>
             <div id="stat-rows"></div>
         </div>
-        <div class="footer-text" id="fOut" style="bottom:25px; left:400px; text-shadow: 0 0 15px #000000;">CONTACT: GRAVESTULLUK</div>
+        <div class="footer-text" id="fOut" style="bottom:25px; left:400px; text-shadow: 0 0 15px #000000; color:#ffffff; font-family:'Bebas Neue'; font-size: 30px;">CONTACT: GRAVESTULLUK</div>
     </div>
 
     <script>
@@ -153,6 +151,20 @@
         window.onmousemove = e => { if(drag && activeEl) { activeEl.style.left = (e.clientX - sx) + 'px'; activeEl.style.top = (e.clientY - sy) + 'px'; }};
         window.onmouseup = () => drag = false;
 
+        // Alignment Logic
+        function toggleGuides() {
+            const v = $('v-guide').style.display === 'block' ? 'none' : 'block';
+            $('v-guide').style.display = v;
+            $('h-guide').style.display = v;
+        }
+
+        function autoCenterEl() {
+            if (!activeEl) return;
+            const containerWidth = 1000;
+            const elWidth = activeEl.offsetWidth;
+            activeEl.style.left = (containerWidth / 2 - elWidth / 2) + "px";
+        }
+
         $('fontSelect').onchange = () => { const f = $('fontSelect').value; $('hOut').style.fontFamily = f; $('fOut').style.fontFamily = f; };
 
         $('imgL').onchange = e => {
@@ -161,7 +173,7 @@
                 r.onload = ev => {
                     const img = document.createElement('img');
                     img.src = ev.target.result; img.className = 'draggable-img';
-                    img.style.width = '300px'; img.style.left = '450px'; img.style.top = '100px'; img.style.zIndex = 5;
+                    img.style.width = '300px'; img.style.left = '350px'; img.style.top = '100px'; img.style.zIndex = 5;
                     makeDraggable(img); $('img-holder').appendChild(img);
                 };
                 r.readAsDataURL(file);
@@ -171,13 +183,9 @@
         $('fSize').oninput = () => {
             if(!activeEl) return;
             const val = $('fSize').value;
-            if(activeEl.tagName === 'IMG') {
-                activeEl.style.width = (val * 4) + 'px'; // Adjusted multiplier for images
-            } else if(activeEl.id === 'ui') {
-                activeEl.style.transform = `scale(${val / 100})`; // Standard scale for stats
-            } else {
-                activeEl.style.fontSize = val + 'px'; // Standard font size for text
-            }
+            if(activeEl.tagName === 'IMG') activeEl.style.width = (val * 4) + 'px';
+            else if(activeEl.id === 'ui') activeEl.style.transform = `scale(${val / 100})`;
+            else activeEl.style.fontSize = val + 'px';
         };
 
         const changeZ = (v) => { if(activeEl) activeEl.style.zIndex = (parseInt(activeEl.style.zIndex)||5) + v; };
@@ -199,15 +207,18 @@
 
         function downloadPoster() {
             if(activeEl) activeEl.classList.remove('active-el');
+            $('v-guide').style.display = 'none';
+            $('h-guide').style.display = 'none';
             html2canvas($("poster-container"), { scale: 2, width: 1000, height: 562 }).then(canvas => {
                 let link = document.createElement('a');
-                link.download = 'ark-sales-poster.png';
+                link.download = ($('projName').value || 'ark-poster') + '.png';
                 link.href = canvas.toDataURL("image/png");
                 link.click();
             });
         }
 
-        function saveProject() {
+        function exportProject() {
+            const name = $('projName').value || 'ark_project';
             const data = {
                 inputs: Array.from(document.querySelectorAll('input[type="text"], textarea, select')).map(i => ({id: i.id, val: i.value})),
                 colors: Array.from(document.querySelectorAll('input[type="color"]')).map(i => ({id: i.id, val: i.value})),
@@ -217,19 +228,25 @@
                     ui: {left: $('ui').style.left, top: $('ui').style.top, transform: $('ui').style.transform}
                 }
             };
-            localStorage.setItem('arkPosterSave', JSON.stringify(data));
-            alert("Project Saved!");
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${name}.json`;
+            link.click();
         }
 
-        function loadProject() {
-            const saved = localStorage.getItem('arkPosterSave');
-            if(!saved) return;
-            const data = JSON.parse(saved);
-            data.inputs.forEach(i => { if($(i.id)) $(i.id).value = i.val; });
-            data.colors.forEach(i => { if($(i.id)) $(i.id).value = i.val; });
-            Object.keys(data.positions).forEach(id => { Object.assign($(id).style, data.positions[id]); });
-            refreshAll(); updateColors();
-            alert("Project Loaded!");
+        function importProject(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                const data = JSON.parse(e.target.result);
+                data.inputs.forEach(i => { if($(i.id)) $(i.id).value = i.val; });
+                data.colors.forEach(i => { if($(i.id)) $(i.id).value = i.val; });
+                Object.keys(data.positions).forEach(id => { Object.assign($(id).style, data.positions[id]); });
+                refreshAll(); updateColors();
+            };
+            reader.readAsText(file);
         }
 
         $('dark').oninput = () => { $('bg-overlay').style.background = `rgba(0,0,0,${$('dark').value/100})`; };

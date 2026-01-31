@@ -66,32 +66,48 @@
         <input type="range" id="rotSlider" min="-180" max="180" value="0">
         <hr>
         <div class="color-grid">
-            <div><label>UI ACCENT</label><input type="color" id="clrUI" value="#0055ff"></div>
-            <div><label>BOX FILL</label><input type="color" id="clrBox" value="#001133"></div>
-            <div><label>HEADLINE</label><input type="color" id="clrHead" value="#ff0000"></div>
-            <div><label>FOOTER</label><input type="color" id="clrFoot" value="#ffffff"></div>
-            <div><label>SHADOW COLOR</label><input type="color" id="clrShadow" value="#000000"></div>
+            <div><label>UI Blue</label><input type="color" id="clrUI" value="#0055ff"></div>
+            <div><label>Box Blue</label><input type="color" id="clrBox" value="#001133"></div>
+            <div><label>Head Red</label><input type="color" id="clrHead" value="#ff0000"></div>
+            <div><label>Foot White</label><input type="color" id="clrFoot" value="#ffffff"></div>
+            <div><label>Shadow</label><input type="color" id="clrShadow" value="#000000"></div>
         </div>
         <div class="color-grid">
-            <div><label>SHADOW INTENSITY</label><input type="range" id="shInt" min="0" max="50" value="15"></div>
-            <div><label>SHADOW BLUR</label><input type="range" id="shBlur" min="0" max="50" value="15"></div>
+            <div><label>Intensity</label><input type="range" id="shInt" min="0" max="50" value="15"></div>
+            <div><label>Blur</label><input type="range" id="shBlur" min="0" max="50" value="15"></div>
         </div>
         <hr>
-        <label>FONT STYLE (25 FONTS)</label>
+        <label>FONT STYLE (FULL 25+ LIBRARY)</label>
         <select id="fontSelect">
             <optgroup label="Industrial & Bold">
                 <option value="'Bebas Neue', cursive">Bebas Neue</option>
                 <option value="'Staatliches', cursive">Staatliches</option>
                 <option value="'Anton', sans-serif">Anton</option>
                 <option value="'Oswald', sans-serif">Oswald</option>
+                <option value="'Graduate', serif">Graduate</option>
             </optgroup>
-            <optgroup label="Stylized & Horror">
+            <optgroup label="Military & Tech">
                 <option value="'Black Ops One', cursive">Black Ops One</option>
                 <option value="'Orbitron', sans-serif">Orbitron</option>
+                <option value="'Share Tech Mono', monospace">Share Tech Mono</option>
+                <option value="'Teko', sans-serif">Teko</option>
+                <option value="'Kenia', cursive">Kenia</option>
+            </optgroup>
+            <optgroup label="Gaming & Style">
+                <option value="'Righteous', cursive">Righteous</option>
+                <option value="'Russo One', sans-serif">Russo One</option>
+                <option value="'Luckiest Guy', cursive">Luckiest Guy</option>
+                <option value="'Bungee', cursive">Bungee</option>
+                <option value="'Racing Sans One', cursive">Racing Sans</option>
+                <option value="'Press Start 2P', cursive">Retro Pixel</option>
+            </optgroup>
+            <optgroup label="Horror">
                 <option value="'Nosifer', cursive">Nosifer</option>
                 <option value="'Creepster', cursive">Creepster</option>
+                <option value="'Metal Mania', cursive">Metal Mania</option>
+                <option value="'Shojumaru', cursive">Shojumaru</option>
             </optgroup>
-            <option value="'Segoe UI', sans-serif">Segoe UI (Default)</option>
+            <option value="'Segoe UI', sans-serif">Segoe UI</option>
         </select>
         <hr>
         <label>ELEMENT SIZE</label><input type="range" id="fSize" min="5" max="500" value="100">
@@ -210,18 +226,10 @@
 
         function downloadPoster() {
             if(activeEl) activeEl.classList.remove('active-el');
-            $('v-guide').style.display = 'none'; $('h-guide').style.display = 'none';
-            // ANTI-ARTIFACT FIX: Precise crop
+            $('v-guide').style.display = $('h-guide').style.display = 'none';
             html2canvas($("poster-container"), { 
-                scale: 2, 
-                width: 1000, 
-                height: 562,
-                scrollX: -window.scrollX,
-                scrollY: -window.scrollY,
-                windowWidth: document.documentElement.offsetWidth,
-                windowHeight: document.documentElement.offsetHeight,
-                x: 0,
-                y: 0
+                scale: 2, width: 1000, height: 562, scrollX: -window.scrollX, scrollY: -window.scrollY, 
+                windowWidth: document.documentElement.offsetWidth, windowHeight: document.documentElement.offsetHeight, x: 0, y: 0 
             }).then(canvas => {
                 let link = document.createElement('a');
                 link.download = 'Shop_Tool_Poster.png';
@@ -252,6 +260,8 @@
             reader.readAsText(event.target.files[0]);
         }
         document.querySelectorAll('.refresh-input, textarea').forEach(i => i.addEventListener('input', refreshAll));
+        const deleteEl = () => { if(activeEl && activeEl.tagName === 'IMG') activeEl.remove(); };
+        const changeZ = (v) => { if(activeEl) activeEl.style.zIndex = (parseInt(activeEl.style.zIndex)||5) + v; };
         refreshAll(); updateColors();
     </script>
 </body>

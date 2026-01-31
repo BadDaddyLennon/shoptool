@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>ARK Sales Tool - Color Pro</title>
+    <title>Shop Tool</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Orbitron:wght@400;900&family=Roboto+Condensed:wght@700&family=Anton&family=Fira+Sans+Extra+Condensed:wght@800&family=Oswald:wght@700&family=Share+Tech+Mono&family=Teko:wght@600&family=Black+Ops+One&family=Staatliches&family=Righteous&family=Racing+Sans+One&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Black+Ops+One&family=Bungee&family=Creepster&family=Fira+Sans+Extra+Condensed:wght@800&family=Graduate&family=Kenia&family=Luckiest+Guy&family=Metal+Mania&family=Monoton&family=Nosifer&family=Orbitron:wght@400;900&family=Oswald:wght@700&family=Permanent+Marker&family=Press+Start+2P&family=Racing+Sans+One&family=Righteous&family=Roboto+Condensed:wght@700&family=Russo+One&family=Share+Tech+Mono&family=Shojumaru&family=Special+Elite&family=Staatliches&family=Teko:wght@600&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
         body { background: #050505; color: #ffffff; font-family: 'Segoe UI', sans-serif; display: flex; padding: 15px; gap: 15px; margin: 0; overflow-x: hidden; }
@@ -40,7 +40,7 @@
 </head>
 <body>
     <div id="controls">
-        <h3>ARK PRO COLOR EDITOR</h3>
+        <h3>Shop Tool</h3>
         
         <label>PC STORAGE</label>
         <div class="save-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
@@ -82,15 +82,41 @@
         </div>
         
         <hr>
-        <label>FONT STYLE</label>
+        <label>FONT STYLE (25 FONTS)</label>
         <select id="fontSelect">
-            <option value="'Bebas Neue', cursive">Bebas Neue</option>
-            <option value="'Staatliches', cursive">Staatliches</option>
-            <option value="'Black Ops One', cursive">Black Ops One</option>
-            <option value="'Orbitron', sans-serif">Orbitron</option>
-            <option value="'Anton', sans-serif">Anton</option>
-            <option value="'Righteous', cursive">Righteous</option>
-            <option value="'Segoe UI', sans-serif">Segoe UI</option>
+            <optgroup label="Industrial & Bold">
+                <option value="'Bebas Neue', cursive">Bebas Neue</option>
+                <option value="'Staatliches', cursive">Staatliches</option>
+                <option value="'Anton', sans-serif">Anton</option>
+                <option value="'Oswald', sans-serif">Oswald</option>
+                <option value="'Graduate', serif">Graduate</option>
+            </optgroup>
+            <optgroup label="Military & Tech">
+                <option value="'Black Ops One', cursive">Black Ops One</option>
+                <option value="'Orbitron', sans-serif">Orbitron</option>
+                <option value="'Share Tech Mono', monospace">Share Tech Mono</option>
+                <option value="'Teko', sans-serif">Teko</option>
+                <option value="'Kenia', cursive">Kenia (Stencil)</option>
+            </optgroup>
+            <optgroup label="Stylized & Gaming">
+                <option value="'Righteous', cursive">Righteous</option>
+                <option value="'Russo One', sans-serif">Russo One</option>
+                <option value="'Luckiest Guy', cursive">Luckiest Guy</option>
+                <option value="'Bungee', cursive">Bungee</option>
+                <option value="'Racing Sans One', cursive">Racing Sans</option>
+                <option value="'Press Start 2P', cursive">Retro Pixel</option>
+            </optgroup>
+            <optgroup label="Horror & Aggressive">
+                <option value="'Nosifer', cursive">Nosifer (Blood)</option>
+                <option value="'Creepster', cursive">Creepster</option>
+                <option value="'Metal Mania', cursive">Metal Mania</option>
+                <option value="'Shojumaru', cursive">Shojumaru</option>
+            </optgroup>
+            <optgroup label="Classic & Clean">
+                <option value="'Permanent Marker', cursive">Marker</option>
+                <option value="'Special Elite', cursive">Typewriter</option>
+                <option value="'Segoe UI', sans-serif">Segoe UI</option>
+            </optgroup>
         </select>
         
         <hr>
@@ -108,8 +134,8 @@
         <button onclick="clearAllImages()" style="background:#441111; color:#ff3366; border-color:#ff3366;">CLEAR ALL IMAGES</button>
         
         <hr>
-        <label>HEADLINE</label><textarea id="hIn">FOR SALE</textarea>
-        <label>FOOTER</label><textarea id="fIn">CONTACT: GRAVESTULLUK</textarea>
+        <label>HEADLINE (Multi-line)</label><textarea id="hIn">FOR SALE</textarea>
+        <label>FOOTER (Multi-line)</label><textarea id="fIn">CONTACT: GRAVESTULLUK</textarea>
         
         <hr>
         <div id="input-fields"></div>
@@ -235,7 +261,7 @@
             $('v-guide').style.display = 'none'; $('h-guide').style.display = 'none';
             html2canvas($("poster-container"), { scale: 2, width: 1000, height: 562, windowWidth: 1000, windowHeight: 562 }).then(canvas => {
                 let link = document.createElement('a');
-                link.download = 'ARK_Poster.png';
+                link.download = 'Shop_Tool_Poster.png';
                 link.href = canvas.toDataURL("image/png"); link.click();
             });
         }
@@ -255,7 +281,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `ARK_Project_${Date.now()}.json`;
+            a.download = `Shop_Tool_Project.json`;
             a.click();
             URL.revokeObjectURL(url);
         }
@@ -282,6 +308,9 @@
             };
             reader.readAsText(file);
         }
+
+        const deleteEl = () => { if(activeEl && activeEl.tagName === 'IMG') activeEl.remove(); };
+        const changeZ = (v) => { if(activeEl) activeEl.style.zIndex = (parseInt(activeEl.style.zIndex)||5) + v; };
 
         document.querySelectorAll('.refresh-input, textarea').forEach(i => i.addEventListener('input', refreshAll));
         refreshAll(); updateColors();

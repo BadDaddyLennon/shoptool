@@ -3,7 +3,7 @@
 <head>
     <title>ARK Sales Tool - Color Pro</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Orbitron:wght@400;900&family=Roboto+Condensed:wght@700&family=Anton&family=Fira+Sans+Extra+Condensed:wght@800&family=Oswald:wght@700&family=Share+Tech+Mono&family=Teko:wght@600&family=Kenia&family=Black+Ops+One&family=Staatliches&family=Righteous&family=Racing+Sans+One&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Orbitron:wght@400;900&family=Roboto+Condensed:wght@700&family=Anton&family=Fira+Sans+Extra+Condensed:wght@800&family=Oswald:wght@700&family=Share+Tech+Mono&family=Teko:wght@600&family=Black+Ops+One&family=Staatliches&family=Righteous&family=Racing+Sans+One&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
         body { background: #050505; color: #ffffff; font-family: 'Segoe UI', sans-serif; display: flex; padding: 15px; gap: 15px; margin: 0; overflow-x: hidden; }
@@ -35,16 +35,18 @@
         input[type="range"] { width: 100%; accent-color: #0055ff; cursor: pointer; margin-bottom: 10px; }
         .color-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
         hr { border: 0.5px solid #333; margin: 15px 0; }
+        #openFileInput { display: none; }
     </style>
 </head>
 <body>
     <div id="controls">
         <h3>ARK PRO COLOR EDITOR</h3>
         
-        <label>PROJECT STORAGE</label>
+        <label>PC STORAGE</label>
         <div class="save-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
-            <button onclick="saveProjectToPC()" style="background:#004400; border-color:#00ff00;">SAVE PROJECT</button>
-            <button onclick="openProjectFromPC()" style="background:#444400; border-color:#ffff00;">OPEN PROJECT</button>
+            <button onclick="saveProjectFile()" style="background:#004400; border-color:#00ff00;">SAVE PROJECT</button>
+            <button onclick="$('openFileInput').click()" style="background:#444400; border-color:#ffff00;">OPEN PROJECT</button>
+            <input type="file" id="openFileInput" accept=".json" onchange="loadProjectFile(event)">
         </div>
         
         <hr>
@@ -72,7 +74,11 @@
             <div><label>BOX FILL</label><input type="color" id="clrBox" value="#001133"></div>
             <div><label>HEADLINE</label><input type="color" id="clrHead" value="#ff0000"></div>
             <div><label>FOOTER</label><input type="color" id="clrFoot" value="#ffffff"></div>
-            <div><label>SHADOW</label><input type="color" id="clrShadow" value="#000000"></div>
+            <div><label>SHADOW COLOR</label><input type="color" id="clrShadow" value="#000000"></div>
+        </div>
+        <div class="color-grid">
+            <div><label>SHADOW INTENSITY</label><input type="range" id="shInt" min="0" max="50" value="15"></div>
+            <div><label>SHADOW BLUR</label><input type="range" id="shBlur" min="0" max="50" value="15"></div>
         </div>
         
         <hr>
@@ -83,9 +89,7 @@
             <option value="'Black Ops One', cursive">Black Ops One</option>
             <option value="'Orbitron', sans-serif">Orbitron</option>
             <option value="'Anton', sans-serif">Anton</option>
-            <option value="'Oswald', sans-serif">Oswald</option>
             <option value="'Righteous', cursive">Righteous</option>
-            <option value="'Share Tech Mono', monospace">Share Tech</option>
             <option value="'Segoe UI', sans-serif">Segoe UI</option>
         </select>
         
@@ -97,10 +101,11 @@
         <label>2. ADD CREATURE IMAGES</label>
         <input type="file" id="imgL" multiple>
         <div class="btn-row">
-            <button onclick="changeZ(1)">BRING FRONT</button>
-            <button onclick="changeZ(-1)">SEND BACK</button>
+            <button onclick="changeZ(1)">FRONT</button>
+            <button onclick="changeZ(-1)">BACK</button>
             <button onclick="deleteEl()" style="color:#ff3366">DELETE</button>
         </div>
+        <button onclick="clearAllImages()" style="background:#441111; color:#ff3366; border-color:#ff3366;">CLEAR ALL IMAGES</button>
         
         <hr>
         <label>HEADLINE</label><textarea id="hIn">FOR SALE</textarea>
@@ -150,8 +155,8 @@
             $('hOut').innerText = $('hIn').value;
             $('fOut').innerText = $('fIn').value;
             for(let i=0; i<7; i++) {
-                $('ln'+i).innerText = $('n'+i).value;
-                $('lb'+i).innerText = $('b'+i).value;
+                if($('ln'+i)) $('ln'+i).innerText = $('n'+i).value;
+                if($('lb'+i)) $('lb'+i).innerText = $('b'+i).value;
             }
         };
 
@@ -184,15 +189,11 @@
         function flipImage() { if(activeEl && activeEl.tagName === 'IMG') { activeEl.dataset.flip = (activeEl.dataset.flip || 1) * -1; applyTransforms(activeEl); }};
         function toggleGuides() { const d = $('v-guide').style.display === 'block' ? 'none' : 'block'; $('v-guide').style.display = $('h-guide').style.display = d; }
         function autoCenterEl() { if(activeEl) activeEl.style.left = (1000/2 - activeEl.offsetWidth/2) + "px"; }
+        function clearAllImages() { $('img-holder').innerHTML = ''; activeEl = null; }
 
         $('fontSelect').onchange = () => { const f = $('fontSelect').value; $('hOut').style.fontFamily = f; $('fOut').style.fontFamily = f; };
 
-        $('bgL').onchange = e => { 
-            const r = new FileReader(); 
-            r.onload = ev => $('poster-container').style.backgroundImage = `url(${ev.target.result})`; 
-            r.readAsDataURL(e.target.files[0]); 
-        };
-
+        $('bgL').onchange = e => { const r = new FileReader(); r.onload = ev => $('poster-container').style.backgroundImage = `url(${ev.target.result})`; r.readAsDataURL(e.target.files[0]); };
         $('imgL').onchange = e => {
             Array.from(e.target.files).forEach(file => {
                 const r = new FileReader();
@@ -217,67 +218,72 @@
 
         const updateColors = () => {
             const ui = $('clrUI').value; const box = $('clrBox').value;
+            const sh = $('clrShadow').value; const si = $('shInt').value; const sb = $('shBlur').value;
             document.querySelectorAll('.box-main, .box-base, .box-mut').forEach(b => { b.style.borderColor = ui; b.style.backgroundColor = box + 'B3'; });
             document.querySelectorAll('.val-name, .base-val, .mut-val').forEach(n => n.style.color = ui);
-            $('hRow').style.color = ui; $('hOut').style.color = $('clrHead').value; $('fOut').style.color = $('clrFoot').value;
-            const sh = $('clrShadow').value; $('hOut').style.textShadow = `0 0 15px ${sh}`; $('fOut').style.textShadow = `0 0 15px ${sh}`;
+            $('hRow').style.color = ui; 
+            $('hOut').style.color = $('clrHead').value; 
+            $('fOut').style.color = $('clrFoot').value;
+            $('hOut').style.textShadow = `0 0 ${sb}px ${sh}, 0 0 ${si}px ${sh}`; 
+            $('fOut').style.textShadow = `0 0 ${sb}px ${sh}, 0 0 ${si}px ${sh}`;
         };
 
-        ['clrUI', 'clrBox', 'clrHead', 'clrFoot', 'clrShadow'].forEach(id => $(id).oninput = updateColors);
+        ['clrUI', 'clrBox', 'clrHead', 'clrFoot', 'clrShadow', 'shInt', 'shBlur'].forEach(id => $(id).oninput = updateColors);
 
         function downloadPoster() {
             if(activeEl) activeEl.classList.remove('active-el');
             $('v-guide').style.display = 'none'; $('h-guide').style.display = 'none';
             html2canvas($("poster-container"), { scale: 2, width: 1000, height: 562, windowWidth: 1000, windowHeight: 562 }).then(canvas => {
                 let link = document.createElement('a');
-                link.download = 'ark-poster.png';
+                link.download = 'ARK_Poster.png';
                 link.href = canvas.toDataURL("image/png"); link.click();
             });
         }
 
-        // --- NEW FILE SYSTEM ACCESS SAVE/OPEN ---
-        async function saveProjectToPC() {
-            const data = {
-                inputs: Array.from(document.querySelectorAll('input, textarea, select')).map(i => ({id: i.id, val: i.value})),
-                positions: {
-                    hOut: {left: $('hOut').style.left, top: $('hOut').style.top, fontSize: $('hOut').style.fontSize, rot: $('hOut').dataset.rot, fontFamily: $('hOut').style.fontFamily},
-                    fOut: {left: $('fOut').style.left, top: $('fOut').style.top, fontSize: $('fOut').style.fontSize, rot: $('fOut').dataset.rot, fontFamily: $('fOut').style.fontFamily},
-                    ui: {left: $('ui').style.left, top: $('ui').style.top, transform: $('ui').style.transform, rot: $('ui').dataset.rot}
-                }
+        function saveProjectFile() {
+            const settings = {};
+            document.querySelectorAll('#controls input, #controls textarea, #controls select').forEach(el => {
+                if(el.id && el.type !== 'file') settings[el.id] = el.value;
+            });
+            const layout = {
+                hOut: { left: $('hOut').style.left, top: $('hOut').style.top, fontSize: $('hOut').style.fontSize, rot: $('hOut').dataset.rot, family: $('hOut').style.fontFamily },
+                fOut: { left: $('fOut').style.left, top: $('fOut').style.top, fontSize: $('fOut').style.fontSize, rot: $('fOut').dataset.rot, family: $('fOut').style.fontFamily },
+                ui: { left: $('ui').style.left, top: $('ui').style.top, transform: $('ui').style.transform, rot: $('ui').dataset.rot }
             };
-            try {
-                const handle = await window.showSaveFilePicker({
-                    suggestedName: 'ARK_Project.json',
-                    types: [{ description: 'Project File', accept: {'application/json': ['.json']} }]
-                });
-                const writable = await handle.createWritable();
-                await writable.write(JSON.stringify(data, null, 2));
-                await writable.close();
-            } catch (err) { console.error("Save cancelled or failed", err); }
+            const data = { settings, layout, timestamp: Date.now() };
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ARK_Project_${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
         }
 
-        async function openProjectFromPC() {
-            try {
-                const [handle] = await window.showOpenFilePicker({
-                    types: [{ description: 'Project File', accept: {'application/json': ['.json']} }]
-                });
-                const file = await handle.getFile();
-                const content = await file.text();
-                const data = JSON.parse(content);
-                data.inputs.forEach(i => { if($(i.id)) $(i.id).value = i.val; });
-                Object.keys(data.positions).forEach(id => { 
-                    Object.assign($(id).style, data.positions[id]); 
-                    $(id).dataset.rot = data.positions[id].rot || 0;
-                    applyTransforms($(id));
-                });
-                refreshAll(); updateColors();
-            } catch (err) { console.error("Open cancelled or failed", err); }
+        function loadProjectFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    for (let id in data.settings) { if ($(id)) $(id).value = data.settings[id]; }
+                    for (let id in data.layout) {
+                        const el = $(id); const dat = data.layout[id];
+                        if (el) {
+                            el.style.left = dat.left; el.style.top = dat.top; el.dataset.rot = dat.rot || 0;
+                            if (dat.fontSize) el.style.fontSize = dat.fontSize;
+                            if (dat.family) el.style.fontFamily = dat.family;
+                            if (dat.transform) el.style.transform = dat.transform;
+                        }
+                    }
+                    refreshAll(); updateColors();
+                } catch (err) { alert("Error loading file."); }
+            };
+            reader.readAsText(file);
         }
 
-        $('dark').oninput = () => { $('bg-overlay').style.background = `rgba(0,0,0,${$('dark').value/100})`; };
-        $('sSize').oninput = () => { document.querySelectorAll('.stat-line-wrapper').forEach(l => l.style.fontSize = $('sSize').value + 'px'); };
         document.querySelectorAll('.refresh-input, textarea').forEach(i => i.addEventListener('input', refreshAll));
-        
         refreshAll(); updateColors();
     </script>
 </body>

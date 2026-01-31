@@ -3,16 +3,16 @@
 <head>
     <title>ARK Sales Tool - Color Pro</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Orbitron:wght@400;900&family=Roboto+Condensed:wght@700&family=Anton&family=Fira+Sans+Extra+Condensed:wght@800&family=Oswald:wght@700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Orbitron:wght@400;900&family=Roboto+Condensed:wght@700&family=Anton&family=Fira+Sans+Extra+Condensed:wght@800&family=Oswald:wght@700&family=Share+Tech+Mono&family=Teko:wght@600&family=Kenia&family=Black+Ops+One&family=Staatliches&family=Righteous&family=Racing+Sans+One&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
-        body { background: #050505; color: #ffffff; font-family: 'Segoe UI', sans-serif; display: flex; padding: 15px; gap: 15px; margin: 0; }
+        body { background: #050505; color: #ffffff; font-family: 'Segoe UI', sans-serif; display: flex; padding: 15px; gap: 15px; margin: 0; overflow-x: hidden; }
         #controls { width: 380px; background: #1a1a1a; padding: 15px; border-radius: 10px; border: 1px solid #0055ff; height: 95vh; overflow-y: auto; font-size: 11px; }
         input[type="text"], select, textarea { width: 100%; background: #000; border: 1px solid #333; color: white; padding: 5px; margin-bottom: 5px; border-radius: 4px; font-family: inherit; }
         textarea { height: 60px; resize: vertical; }
         .stat-input-row { display: grid; grid-template-columns: 1.5fr 1fr; gap: 5px; margin-bottom: 5px; }
         
-        #poster-container { position: relative; width: 1000px; height: 562px; background: #000 center/cover no-repeat; overflow: hidden; border: none; }
+        #poster-container { position: relative; width: 1000px; height: 562px; background: #000 center/cover no-repeat; overflow: hidden; border: none; margin: 0; padding: 0; }
         #bg-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.3); pointer-events: none; z-index: 1; }
         
         #v-guide { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: rgba(255, 255, 255, 0.4); z-index: 100; display: none; pointer-events: none; }
@@ -28,26 +28,23 @@
         
         .box-main, .box-base, .box-mut { border: 1px solid #0055ff; padding: 6px 10px; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(2px); color: #fff; }
         .box-main { justify-content: flex-start; border-left-width: 4px; }
-        .val-name, .base-val, .mut-val { font-weight: bold; }
         
         button { width: 100%; padding: 10px; background: #002244; color: #ffffff; border: 1px solid #0055ff; cursor: pointer; margin: 5px 0; border-radius: 4px; font-weight: bold; }
+        button:hover { background: #003366; }
         .btn-row { display: flex; gap: 5px; }
         input[type="range"] { width: 100%; accent-color: #0055ff; cursor: pointer; margin-bottom: 10px; }
         .color-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
         hr { border: 0.5px solid #333; margin: 15px 0; }
-        #importFile { display: none; }
     </style>
 </head>
 <body>
     <div id="controls">
         <h3>ARK PRO COLOR EDITOR</h3>
         
-        <label>FILE MANAGEMENT</label>
-        <input type="text" id="projName" placeholder="Project Name (e.g. Fire_Rex)">
+        <label>PROJECT STORAGE</label>
         <div class="save-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
-            <button onclick="exportProject()" style="background:#004400; border-color:#00ff00;">EXPORT PC</button>
-            <button onclick="$('importFile').click()" style="background:#444400; border-color:#ffff00;">IMPORT PC</button>
-            <input type="file" id="importFile" accept=".json" onchange="importProject(event)">
+            <button onclick="saveProjectToPC()" style="background:#004400; border-color:#00ff00;">SAVE PROJECT</button>
+            <button onclick="openProjectFromPC()" style="background:#444400; border-color:#ffff00;">OPEN PROJECT</button>
         </div>
         
         <hr>
@@ -82,11 +79,14 @@
         <label>FONT STYLE</label>
         <select id="fontSelect">
             <option value="'Bebas Neue', cursive">Bebas Neue</option>
-            <option value="'Segoe UI', sans-serif">Segoe UI</option>
+            <option value="'Staatliches', cursive">Staatliches</option>
+            <option value="'Black Ops One', cursive">Black Ops One</option>
             <option value="'Orbitron', sans-serif">Orbitron</option>
             <option value="'Anton', sans-serif">Anton</option>
             <option value="'Oswald', sans-serif">Oswald</option>
-            <option value="'Impact', sans-serif">Impact</option>
+            <option value="'Righteous', cursive">Righteous</option>
+            <option value="'Share Tech Mono', monospace">Share Tech</option>
+            <option value="'Segoe UI', sans-serif">Segoe UI</option>
         </select>
         
         <hr>
@@ -116,13 +116,13 @@
     <div id="poster-container">
         <div id="v-guide"></div><div id="h-guide"></div>
         <div id="bg-overlay"></div>
-        <div class="headline" id="hOut" style="top:25px; left:350px; text-shadow: 0 0 15px #000000; color:#ff0000; font-family:'Bebas Neue'; font-size: 60px;">FOR SALE</div>
+        <div class="headline" id="hOut" style="top:25px; left:400px; text-shadow: 0 0 15px #000000; color:#ff0000; font-family:'Bebas Neue'; font-size: 60px;">FOR SALE</div>
         <div id="img-holder"></div>
         <div class="stats-overlay" id="ui">
             <div class="header-row" id="hRow"><span>Stat / Value</span><span style="text-align:center">Base</span><span style="text-align:center">Muts</span></div>
             <div id="stat-rows"></div>
         </div>
-        <div class="footer-text" id="fOut" style="bottom:25px; left:350px; text-shadow: 0 0 15px #000000; color:#ffffff; font-family:'Bebas Neue'; font-size: 30px;">CONTACT: GRAVESTULLUK</div>
+        <div class="footer-text" id="fOut" style="bottom:25px; left:400px; text-shadow: 0 0 15px #000000; color:#ffffff; font-family:'Bebas Neue'; font-size: 30px;">CONTACT: GRAVESTULLUK</div>
     </div>
 
     <script>
@@ -187,11 +187,10 @@
 
         $('fontSelect').onchange = () => { const f = $('fontSelect').value; $('hOut').style.fontFamily = f; $('fOut').style.fontFamily = f; };
 
-        // Restoration of Background Loader Listener
         $('bgL').onchange = e => { 
             const r = new FileReader(); 
             r.onload = ev => $('poster-container').style.backgroundImage = `url(${ev.target.result})`; 
-            if(e.target.files[0]) r.readAsDataURL(e.target.files[0]); 
+            r.readAsDataURL(e.target.files[0]); 
         };
 
         $('imgL').onchange = e => {
@@ -228,32 +227,43 @@
 
         function downloadPoster() {
             if(activeEl) activeEl.classList.remove('active-el');
-            $('v-guide').style.display = $('h-guide').style.display = 'none';
-            html2canvas($("poster-container"), { scale: 2, width: 1000, height: 562 }).then(canvas => {
+            $('v-guide').style.display = 'none'; $('h-guide').style.display = 'none';
+            html2canvas($("poster-container"), { scale: 2, width: 1000, height: 562, windowWidth: 1000, windowHeight: 562 }).then(canvas => {
                 let link = document.createElement('a');
-                link.download = ($('projName').value || 'ark-poster') + '.png';
+                link.download = 'ark-poster.png';
                 link.href = canvas.toDataURL("image/png"); link.click();
             });
         }
 
-        function exportProject() {
+        // --- NEW FILE SYSTEM ACCESS SAVE/OPEN ---
+        async function saveProjectToPC() {
             const data = {
                 inputs: Array.from(document.querySelectorAll('input, textarea, select')).map(i => ({id: i.id, val: i.value})),
                 positions: {
-                    hOut: {left: $('hOut').style.left, top: $('hOut').style.top, fontSize: $('hOut').style.fontSize, rot: $('hOut').dataset.rot},
-                    fOut: {left: $('fOut').style.left, top: $('fOut').style.top, fontSize: $('fOut').style.fontSize, rot: $('fOut').dataset.rot},
+                    hOut: {left: $('hOut').style.left, top: $('hOut').style.top, fontSize: $('hOut').style.fontSize, rot: $('hOut').dataset.rot, fontFamily: $('hOut').style.fontFamily},
+                    fOut: {left: $('fOut').style.left, top: $('fOut').style.top, fontSize: $('fOut').style.fontSize, rot: $('fOut').dataset.rot, fontFamily: $('fOut').style.fontFamily},
                     ui: {left: $('ui').style.left, top: $('ui').style.top, transform: $('ui').style.transform, rot: $('ui').dataset.rot}
                 }
             };
-            const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
-            const link = document.createElement('a'); link.href = URL.createObjectURL(blob);
-            link.download = ($('projName').value || 'project') + ".json"; link.click();
+            try {
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: 'ARK_Project.json',
+                    types: [{ description: 'Project File', accept: {'application/json': ['.json']} }]
+                });
+                const writable = await handle.createWritable();
+                await writable.write(JSON.stringify(data, null, 2));
+                await writable.close();
+            } catch (err) { console.error("Save cancelled or failed", err); }
         }
 
-        function importProject(event) {
-            const reader = new FileReader();
-            reader.onload = e => {
-                const data = JSON.parse(e.target.result);
+        async function openProjectFromPC() {
+            try {
+                const [handle] = await window.showOpenFilePicker({
+                    types: [{ description: 'Project File', accept: {'application/json': ['.json']} }]
+                });
+                const file = await handle.getFile();
+                const content = await file.text();
+                const data = JSON.parse(content);
                 data.inputs.forEach(i => { if($(i.id)) $(i.id).value = i.val; });
                 Object.keys(data.positions).forEach(id => { 
                     Object.assign($(id).style, data.positions[id]); 
@@ -261,8 +271,7 @@
                     applyTransforms($(id));
                 });
                 refreshAll(); updateColors();
-            };
-            reader.readAsText(event.target.files[0]);
+            } catch (err) { console.error("Open cancelled or failed", err); }
         }
 
         $('dark').oninput = () => { $('bg-overlay').style.background = `rgba(0,0,0,${$('dark').value/100})`; };

@@ -15,13 +15,12 @@
         #poster-container { position: relative; width: 1000px; height: 562px; background: #000 center/cover no-repeat; overflow: hidden; border: none; }
         #bg-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.3); pointer-events: none; z-index: 1; }
         
-        /* Alignment Guides */
-        #v-guide { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: rgba(255, 255, 255, 0.3); z-index: 100; display: none; pointer-events: none; }
-        #h-guide { position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: rgba(255, 255, 255, 0.3); z-index: 100; display: none; pointer-events: none; }
+        #v-guide { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: rgba(255, 255, 255, 0.4); z-index: 100; display: none; pointer-events: none; }
+        #h-guide { position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: rgba(255, 255, 255, 0.4); z-index: 100; display: none; pointer-events: none; }
 
-        .headline, .footer-text { position: absolute; width: auto; text-align: center; font-weight: 900; text-transform: uppercase; z-index: 11; letter-spacing: 5px; cursor: move; white-space: pre-wrap; line-height: 1.2; }
+        .headline, .footer-text { position: absolute; width: auto; text-align: center; font-weight: 900; text-transform: uppercase; z-index: 11; letter-spacing: 5px; cursor: move; white-space: pre-wrap; line-height: 1.2; transform-origin: center; }
         .stats-overlay { position: absolute; left: 40px; top: 110px; z-index: 10; cursor: move; padding: 10px; border: 1px solid transparent; transform-origin: top left; }
-        .draggable-img { position: absolute; cursor: move; z-index: 5; filter: drop-shadow(0 0 15px rgba(0,0,0,0.4)); }
+        .draggable-img { position: absolute; cursor: move; z-index: 5; filter: drop-shadow(0 0 15px rgba(0,0,0,0.4)); transform-origin: center; }
         
         .active-el { border: 1px dashed #ffffff !important; }
         .header-row { display: grid; grid-template-columns: 140px 80px 80px; gap: 5px; padding-left: 5px; margin-bottom: 5px; font-size: 10px; text-transform: uppercase; font-weight: bold; pointer-events: none; }
@@ -29,9 +28,9 @@
         
         .box-main, .box-base, .box-mut { border: 1px solid #0055ff; padding: 6px 10px; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(2px); color: #fff; }
         .box-main { justify-content: flex-start; border-left-width: 4px; }
+        .val-name, .base-val, .mut-val { font-weight: bold; }
         
         button { width: 100%; padding: 10px; background: #002244; color: #ffffff; border: 1px solid #0055ff; cursor: pointer; margin: 5px 0; border-radius: 4px; font-weight: bold; }
-        button:hover { background: #003366; }
         .btn-row { display: flex; gap: 5px; }
         input[type="range"] { width: 100%; accent-color: #0055ff; cursor: pointer; margin-bottom: 10px; }
         .color-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
@@ -42,30 +41,45 @@
 <body>
     <div id="controls">
         <h3>ARK PRO COLOR EDITOR</h3>
-        <label>PROJECT FILENAME</label>
-        <input type="text" id="projName" placeholder="e.g. Blue_Rex_Sales">
+        
+        <label>FILE MANAGEMENT</label>
+        <input type="text" id="projName" placeholder="Project Name (e.g. Fire_Rex)">
         <div class="save-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
-            <button onclick="exportProject()" style="background:#004400; border-color:#00ff00;">EXPORT TO PC</button>
-            <button onclick="$('importFile').click()" style="background:#444400; border-color:#ffff00;">IMPORT FROM PC</button>
+            <button onclick="exportProject()" style="background:#004400; border-color:#00ff00;">EXPORT PC</button>
+            <button onclick="$('importFile').click()" style="background:#444400; border-color:#ffff00;">IMPORT PC</button>
             <input type="file" id="importFile" accept=".json" onchange="importProject(event)">
         </div>
+        
         <hr>
-        <label>ALIGNMENT TOOLS</label>
-        <button onclick="toggleGuides()" style="background: #333;">TOGGLE CENTER GUIDES</button>
-        <button onclick="autoCenterEl()" style="background: #0055ff; color: white;">SNAP ACTIVE TO CENTER</button>
+        <label>1. TEMPLATE BACKGROUND</label>
+        <input type="file" id="bgL">
+        <label>DARKEN BACKGROUND</label>
+        <input type="range" id="dark" min="0" max="100" value="30">
+        
         <hr>
-        <label>1. BACKGROUND IMAGE</label><input type="file" id="bgL">
-        <label>2. DARKEN BACKGROUND</label><input type="range" id="dark" min="0" max="100" value="30">
+        <label>ALIGNMENT & TRANSFORMS</label>
+        <div class="btn-row">
+            <button onclick="autoCenterEl()">AUTO-CENTER</button>
+            <button onclick="toggleGuides()">GUIDES</button>
+        </div>
+        <div class="btn-row">
+            <button onclick="flipImage()">FLIP IMAGE</button>
+            <button onclick="resetRotation()" style="color:#ffcc00">RESET ROT</button>
+        </div>
+        <label>ROTATE ELEMENT</label>
+        <input type="range" id="rotSlider" min="-180" max="180" value="0">
+        
         <hr>
         <div class="color-grid">
             <div><label>UI ACCENT</label><input type="color" id="clrUI" value="#0055ff"></div>
             <div><label>BOX FILL</label><input type="color" id="clrBox" value="#001133"></div>
             <div><label>HEADLINE</label><input type="color" id="clrHead" value="#ff0000"></div>
             <div><label>FOOTER</label><input type="color" id="clrFoot" value="#ffffff"></div>
-            <div><label>TEXT SHADOW</label><input type="color" id="clrShadow" value="#000000"></div>
+            <div><label>SHADOW</label><input type="color" id="clrShadow" value="#000000"></div>
         </div>
+        
         <hr>
-        <label>3. FONT STYLE</label>
+        <label>FONT STYLE</label>
         <select id="fontSelect">
             <option value="'Bebas Neue', cursive">Bebas Neue</option>
             <option value="'Segoe UI', sans-serif">Segoe UI</option>
@@ -74,36 +88,41 @@
             <option value="'Oswald', sans-serif">Oswald</option>
             <option value="'Impact', sans-serif">Impact</option>
         </select>
+        
         <hr>
-        <label>4. SELECTED ELEMENT SIZE</label><input type="range" id="fSize" min="5" max="500" value="100">
-        <label>5. STATS FONT SIZE</label><input type="range" id="sSize" min="5" max="30" value="15">
+        <label>SELECTED ELEMENT SIZE</label><input type="range" id="fSize" min="5" max="500" value="100">
+        <label>STATS FONT SIZE</label><input type="range" id="sSize" min="5" max="30" value="15">
+        
         <hr>
-        <label>6. CREATURE IMAGES</label><input type="file" id="imgL" multiple>
+        <label>2. ADD CREATURE IMAGES</label>
+        <input type="file" id="imgL" multiple>
         <div class="btn-row">
-            <button onclick="changeZ(1)">FRONT</button>
-            <button onclick="changeZ(-1)">BACK</button>
-            <button onclick="deleteEl()" style="color:#ff3366; border-color:#ff3366;">DEL</button>
+            <button onclick="changeZ(1)">BRING FRONT</button>
+            <button onclick="changeZ(-1)">SEND BACK</button>
+            <button onclick="deleteEl()" style="color:#ff3366">DELETE</button>
         </div>
+        
         <hr>
         <label>HEADLINE</label><textarea id="hIn">FOR SALE</textarea>
         <label>FOOTER</label><textarea id="fIn">CONTACT: GRAVESTULLUK</textarea>
+        
         <hr>
         <div id="input-fields"></div>
+        
         <hr>
-        <button onclick="downloadPoster()" style="background: #ffffff; color: #000; border-color: #0055ff;">DOWNLOAD PNG</button>
+        <button onclick="downloadPoster()" style="background: #ffffff; color: #000; border: 2px solid #0055ff;">DOWNLOAD PNG</button>
     </div>
 
     <div id="poster-container">
-        <div id="v-guide"></div>
-        <div id="h-guide"></div>
+        <div id="v-guide"></div><div id="h-guide"></div>
         <div id="bg-overlay"></div>
-        <div class="headline" id="hOut" style="top:25px; left:400px; text-shadow: 0 0 15px #000000; color:#ff0000; font-family:'Bebas Neue'; font-size: 60px;">FOR SALE</div>
+        <div class="headline" id="hOut" style="top:25px; left:350px; text-shadow: 0 0 15px #000000; color:#ff0000; font-family:'Bebas Neue'; font-size: 60px;">FOR SALE</div>
         <div id="img-holder"></div>
         <div class="stats-overlay" id="ui">
             <div class="header-row" id="hRow"><span>Stat / Value</span><span style="text-align:center">Base</span><span style="text-align:center">Muts</span></div>
             <div id="stat-rows"></div>
         </div>
-        <div class="footer-text" id="fOut" style="bottom:25px; left:400px; text-shadow: 0 0 15px #000000; color:#ffffff; font-family:'Bebas Neue'; font-size: 30px;">CONTACT: GRAVESTULLUK</div>
+        <div class="footer-text" id="fOut" style="bottom:25px; left:350px; text-shadow: 0 0 15px #000000; color:#ffffff; font-family:'Bebas Neue'; font-size: 30px;">CONTACT: GRAVESTULLUK</div>
     </div>
 
     <script>
@@ -138,10 +157,19 @@
 
         let activeEl = null, drag = false, sx, sy;
 
+        function applyTransforms(el) {
+            if (!el) return;
+            const rot = el.dataset.rot || 0;
+            const flip = el.dataset.flip || 1;
+            const scale = el.id === 'ui' ? (parseInt($('fSize').value) / 100) : 1;
+            el.style.transform = `rotate(${rot}deg) scaleX(${flip}) ${el.id==='ui' ? `scale(${scale})` : ''}`;
+        }
+
         function makeDraggable(el) {
             el.onmousedown = e => {
                 if(activeEl) activeEl.classList.remove('active-el');
                 activeEl = el; activeEl.classList.add('active-el');
+                $('rotSlider').value = el.dataset.rot || 0;
                 drag = true; sx = e.clientX - el.offsetLeft; sy = e.clientY - el.offsetTop;
                 e.preventDefault(); e.stopPropagation();
             };
@@ -151,21 +179,20 @@
         window.onmousemove = e => { if(drag && activeEl) { activeEl.style.left = (e.clientX - sx) + 'px'; activeEl.style.top = (e.clientY - sy) + 'px'; }};
         window.onmouseup = () => drag = false;
 
-        // Alignment Logic
-        function toggleGuides() {
-            const v = $('v-guide').style.display === 'block' ? 'none' : 'block';
-            $('v-guide').style.display = v;
-            $('h-guide').style.display = v;
-        }
-
-        function autoCenterEl() {
-            if (!activeEl) return;
-            const containerWidth = 1000;
-            const elWidth = activeEl.offsetWidth;
-            activeEl.style.left = (containerWidth / 2 - elWidth / 2) + "px";
-        }
+        $('rotSlider').oninput = () => { if(activeEl) { activeEl.dataset.rot = $('rotSlider').value; applyTransforms(activeEl); }};
+        function resetRotation() { if(activeEl) { activeEl.dataset.rot = 0; $('rotSlider').value = 0; applyTransforms(activeEl); }};
+        function flipImage() { if(activeEl && activeEl.tagName === 'IMG') { activeEl.dataset.flip = (activeEl.dataset.flip || 1) * -1; applyTransforms(activeEl); }};
+        function toggleGuides() { const d = $('v-guide').style.display === 'block' ? 'none' : 'block'; $('v-guide').style.display = $('h-guide').style.display = d; }
+        function autoCenterEl() { if(activeEl) activeEl.style.left = (1000/2 - activeEl.offsetWidth/2) + "px"; }
 
         $('fontSelect').onchange = () => { const f = $('fontSelect').value; $('hOut').style.fontFamily = f; $('fOut').style.fontFamily = f; };
+
+        // Restoration of Background Loader Listener
+        $('bgL').onchange = e => { 
+            const r = new FileReader(); 
+            r.onload = ev => $('poster-container').style.backgroundImage = `url(${ev.target.result})`; 
+            if(e.target.files[0]) r.readAsDataURL(e.target.files[0]); 
+        };
 
         $('imgL').onchange = e => {
             Array.from(e.target.files).forEach(file => {
@@ -173,7 +200,8 @@
                 r.onload = ev => {
                     const img = document.createElement('img');
                     img.src = ev.target.result; img.className = 'draggable-img';
-                    img.style.width = '300px'; img.style.left = '350px'; img.style.top = '100px'; img.style.zIndex = 5;
+                    img.style.width = '300px'; img.style.left = '450px'; img.style.top = '100px'; img.style.zIndex = 5;
+                    img.dataset.rot = 0; img.dataset.flip = 1;
                     makeDraggable(img); $('img-holder').appendChild(img);
                 };
                 r.readAsDataURL(file);
@@ -184,77 +212,64 @@
             if(!activeEl) return;
             const val = $('fSize').value;
             if(activeEl.tagName === 'IMG') activeEl.style.width = (val * 4) + 'px';
-            else if(activeEl.id === 'ui') activeEl.style.transform = `scale(${val / 100})`;
+            else if(activeEl.id === 'ui') applyTransforms(activeEl);
             else activeEl.style.fontSize = val + 'px';
         };
 
-        const changeZ = (v) => { if(activeEl) activeEl.style.zIndex = (parseInt(activeEl.style.zIndex)||5) + v; };
-        const deleteEl = () => { if(activeEl && activeEl.tagName === 'IMG') activeEl.remove(); };
-
         const updateColors = () => {
             const ui = $('clrUI').value; const box = $('clrBox').value;
-            document.querySelectorAll('.box-main, .box-base, .box-mut').forEach(b => b.style.borderColor = ui);
+            document.querySelectorAll('.box-main, .box-base, .box-mut').forEach(b => { b.style.borderColor = ui; b.style.backgroundColor = box + 'B3'; });
             document.querySelectorAll('.val-name, .base-val, .mut-val').forEach(n => n.style.color = ui);
-            $('hRow').style.color = ui;
-            document.querySelectorAll('.box-main, .box-base, .box-mut').forEach(b => b.style.backgroundColor = box + 'B3');
-            $('hOut').style.color = $('clrHead').value;
-            $('fOut').style.color = $('clrFoot').value;
+            $('hRow').style.color = ui; $('hOut').style.color = $('clrHead').value; $('fOut').style.color = $('clrFoot').value;
             const sh = $('clrShadow').value; $('hOut').style.textShadow = `0 0 15px ${sh}`; $('fOut').style.textShadow = `0 0 15px ${sh}`;
         };
 
         ['clrUI', 'clrBox', 'clrHead', 'clrFoot', 'clrShadow'].forEach(id => $(id).oninput = updateColors);
-        $('bgL').onchange = e => { const r = new FileReader(); r.onload = ev => $('poster-container').style.backgroundImage = `url(${ev.target.result})`; r.readAsDataURL(e.target.files[0]); };
 
         function downloadPoster() {
             if(activeEl) activeEl.classList.remove('active-el');
-            $('v-guide').style.display = 'none';
-            $('h-guide').style.display = 'none';
+            $('v-guide').style.display = $('h-guide').style.display = 'none';
             html2canvas($("poster-container"), { scale: 2, width: 1000, height: 562 }).then(canvas => {
                 let link = document.createElement('a');
                 link.download = ($('projName').value || 'ark-poster') + '.png';
-                link.href = canvas.toDataURL("image/png");
-                link.click();
+                link.href = canvas.toDataURL("image/png"); link.click();
             });
         }
 
         function exportProject() {
-            const name = $('projName').value || 'ark_project';
             const data = {
-                inputs: Array.from(document.querySelectorAll('input[type="text"], textarea, select')).map(i => ({id: i.id, val: i.value})),
-                colors: Array.from(document.querySelectorAll('input[type="color"]')).map(i => ({id: i.id, val: i.value})),
+                inputs: Array.from(document.querySelectorAll('input, textarea, select')).map(i => ({id: i.id, val: i.value})),
                 positions: {
-                    hOut: {left: $('hOut').style.left, top: $('hOut').style.top, fontSize: $('hOut').style.fontSize, fontFamily: $('hOut').style.fontFamily},
-                    fOut: {left: $('fOut').style.left, top: $('fOut').style.top, fontSize: $('fOut').style.fontSize, fontFamily: $('fOut').style.fontFamily},
-                    ui: {left: $('ui').style.left, top: $('ui').style.top, transform: $('ui').style.transform}
+                    hOut: {left: $('hOut').style.left, top: $('hOut').style.top, fontSize: $('hOut').style.fontSize, rot: $('hOut').dataset.rot},
+                    fOut: {left: $('fOut').style.left, top: $('fOut').style.top, fontSize: $('fOut').style.fontSize, rot: $('fOut').dataset.rot},
+                    ui: {left: $('ui').style.left, top: $('ui').style.top, transform: $('ui').style.transform, rot: $('ui').dataset.rot}
                 }
             };
-            const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `${name}.json`;
-            link.click();
+            const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
+            const link = document.createElement('a'); link.href = URL.createObjectURL(blob);
+            link.download = ($('projName').value || 'project') + ".json"; link.click();
         }
 
         function importProject(event) {
-            const file = event.target.files[0];
-            if (!file) return;
             const reader = new FileReader();
             reader.onload = e => {
                 const data = JSON.parse(e.target.result);
                 data.inputs.forEach(i => { if($(i.id)) $(i.id).value = i.val; });
-                data.colors.forEach(i => { if($(i.id)) $(i.id).value = i.val; });
-                Object.keys(data.positions).forEach(id => { Object.assign($(id).style, data.positions[id]); });
+                Object.keys(data.positions).forEach(id => { 
+                    Object.assign($(id).style, data.positions[id]); 
+                    $(id).dataset.rot = data.positions[id].rot || 0;
+                    applyTransforms($(id));
+                });
                 refreshAll(); updateColors();
             };
-            reader.readAsText(file);
+            reader.readAsText(event.target.files[0]);
         }
 
         $('dark').oninput = () => { $('bg-overlay').style.background = `rgba(0,0,0,${$('dark').value/100})`; };
         $('sSize').oninput = () => { document.querySelectorAll('.stat-line-wrapper').forEach(l => l.style.fontSize = $('sSize').value + 'px'); };
         document.querySelectorAll('.refresh-input, textarea').forEach(i => i.addEventListener('input', refreshAll));
         
-        refreshAll();
-        updateColors();
+        refreshAll(); updateColors();
     </script>
 </body>
 </html>

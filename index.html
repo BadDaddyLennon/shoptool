@@ -28,7 +28,6 @@
         
         .box-main, .box-base, .box-mut { border: 1px solid #0055ff; padding: 6px 10px; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(2px); color: #fff; }
         .box-main { justify-content: flex-start; border-left-width: 4px; }
-        .val-name, .base-val, .mut-val { font-weight: bold; }
         
         button { width: 100%; padding: 10px; background: #002244; color: #ffffff; border: 1px solid #0055ff; cursor: pointer; margin: 5px 0; border-radius: 4px; font-weight: bold; }
         .btn-row { display: flex; gap: 5px; }
@@ -70,12 +69,14 @@
             <div><label>Box Blue</label><input type="color" id="clrBox" value="#001133"></div>
             <div><label>Head Red</label><input type="color" id="clrHead" value="#ff0000"></div>
             <div><label>Foot White</label><input type="color" id="clrFoot" value="#ffffff"></div>
-            <div><label>Shadow</label><input type="color" id="clrShadow" value="#000000"></div>
+            <div><label>Shadow Color</label><input type="color" id="clrShadow" value="#000000"></div>
         </div>
         <div class="color-grid">
-            <div><label>Intensity</label><input type="range" id="shInt" min="0" max="50" value="15"></div>
-            <div><label>Blur</label><input type="range" id="shBlur" min="0" max="50" value="15"></div>
+            <div><label>Shadow Intensity</label><input type="range" id="shInt" min="0" max="50" value="15"></div>
+            <div><label>Shadow Blur</label><input type="range" id="shBlur" min="0" max="50" value="15"></div>
         </div>
+        <label>Shadow Spread (Thickness)</label>
+        <input type="range" id="shSpread" min="0" max="30" value="0">
         <hr>
         <label>FONT STYLE (25+ FONTS)</label>
         <select id="fontSelect">
@@ -119,9 +120,10 @@
             <button onclick="changeZ(-1)">BACK</button>
             <button onclick="deleteEl()" style="color:#ff3366">DELETE</button>
         </div>
+        <button onclick="clearAllImages()" style="background:#441111; color:#ff3366; border-color:#ff3366;">CLEAR ALL IMAGES</button>
         <hr>
-        <label>HEADLINE</label><textarea id="hIn">FOR SALE</textarea>
-        <label>FOOTER</label><textarea id="fIn">CONTACT: GRAVESTULLUK</textarea>
+        <label>HEADLINE (Multi-line)</label><textarea id="hIn">FOR SALE</textarea>
+        <label>FOOTER (Multi-line)</label><textarea id="fIn">CONTACT: GRAVESTULLUK</textarea>
         <div id="input-fields"></div>
         <hr>
         <button onclick="downloadPoster()" style="background: #ffffff; color: #000; border: 2px solid #0055ff;">DOWNLOAD PNG</button>
@@ -188,6 +190,7 @@
         function flipImage() { if(activeEl && activeEl.tagName === 'IMG') { activeEl.dataset.flip = (activeEl.dataset.flip || 1) * -1; applyTransforms(activeEl); }};
         function toggleGuides() { const d = $('v-guide').style.display === 'block' ? 'none' : 'block'; $('v-guide').style.display = $('h-guide').style.display = d; }
         function autoCenterEl() { if(activeEl) activeEl.style.left = (1000/2 - activeEl.offsetWidth/2) + "px"; }
+        function clearAllImages() { $('img-holder').innerHTML = ''; activeEl = null; }
 
         $('fontSelect').onchange = () => { 
             const f = $('fontSelect').value; 
@@ -220,19 +223,24 @@
         };
 
         const updateColors = () => {
-            const ui = $('clrUI').value, box = $('clrBox').value, sh = $('clrShadow').value, si = $('shInt').value, sb = $('shBlur').value;
+            const ui = $('clrUI').value, box = $('clrBox').value, sh = $('clrShadow').value, si = $('shInt').value, sb = $('shBlur').value, spr = $('shSpread').value;
             document.querySelectorAll('.box-main, .box-base, .box-mut').forEach(b => { b.style.borderColor = ui; b.style.backgroundColor = box + 'B3'; });
             document.querySelectorAll('.val-name, .base-val, .mut-val').forEach(n => n.style.color = ui);
             $('hRow').style.color = ui; $('hOut').style.color = $('clrHead').value; $('fOut').style.color = $('clrFoot').value;
-            $('hOut').style.textShadow = `0 0 ${sb}px ${sh}, 0 0 ${si}px ${sh}`; $('fOut').style.textShadow = `0 0 ${sb}px ${sh}, 0 0 ${si}px ${sh}`;
+            // Enhanced shadow logic with spread
+            const shadowString = `0 0 ${sb}px ${spr}px ${sh}, 0 0 ${si}px ${sh}`;
+            $('hOut').style.textShadow = shadowString; $('fOut').style.textShadow = shadowString;
         };
 
-        ['clrUI', 'clrBox', 'clrHead', 'clrFoot', 'clrShadow', 'shInt', 'shBlur'].forEach(id => $(id).oninput = updateColors);
+        ['clrUI', 'clrBox', 'clrHead', 'clrFoot', 'clrShadow', 'shInt', 'shBlur', 'shSpread'].forEach(id => $(id).oninput = updateColors);
 
         function downloadPoster() {
             if(activeEl) activeEl.classList.remove('active-el');
             $('v-guide').style.display = $('h-guide').style.display = 'none';
-            html2canvas($("poster-container"), { scale: 2, width: 1000, height: 562, scrollX: -window.scrollX, scrollY: -window.scrollY, windowWidth: document.documentElement.offsetWidth, windowHeight: document.documentElement.offsetHeight, x: 0, y: 0 }).then(canvas => {
+            html2canvas($("poster-container"), { 
+                scale: 2, width: 1000, height: 562, scrollX: -window.scrollX, scrollY: -window.scrollY, 
+                windowWidth: document.documentElement.offsetWidth, windowHeight: document.documentElement.offsetHeight, x: 0, y: 0 
+            }).then(canvas => {
                 let link = document.createElement('a');
                 link.download = 'Shop_Tool_Poster.png';
                 link.href = canvas.toDataURL("image/png"); link.click();
@@ -245,7 +253,7 @@
             const layout = {
                 hOut: { left: $('hOut').style.left, top: $('hOut').style.top, fontSize: $('hOut').style.fontSize, rot: $('hOut').dataset.rot, family: $('hOut').style.fontFamily },
                 fOut: { left: $('fOut').style.left, top: $('fOut').style.top, fontSize: $('fOut').style.fontSize, rot: $('fOut').dataset.rot, family: $('fOut').style.fontFamily },
-                ui: { left: $('ui').style.left, top: $('ui').style.top, transform: $('ui').style.transform, rot: $('ui').dataset.rot }
+                ui: { left: $('ui').style.left, top: $('ui').style.top, transform: $('ui').style.transform, rot: $('ui').dataset.rot, family: $('ui').style.fontFamily }
             };
             const blob = new Blob([JSON.stringify({ settings, layout }, null, 2)], {type: "application/json"});
             const url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = `Shop_Tool_Project.json`; a.click(); URL.revokeObjectURL(url);
@@ -265,6 +273,8 @@
         document.querySelectorAll('.refresh-input, textarea').forEach(i => i.addEventListener('input', refreshAll));
         const deleteEl = () => { if(activeEl && activeEl.tagName === 'IMG') activeEl.remove(); };
         const changeZ = (v) => { if(activeEl) activeEl.style.zIndex = (parseInt(activeEl.style.zIndex)||5) + v; };
+        $('dark').oninput = () => { $('bg-overlay').style.background = `rgba(0,0,0,${$('dark').value/100})`; };
+        $('sSize').oninput = () => { document.querySelectorAll('.stat-line-wrapper').forEach(l => l.style.fontSize = $('sSize').value + 'px'); };
         refreshAll(); updateColors();
     </script>
 </body>

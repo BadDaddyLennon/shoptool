@@ -85,7 +85,6 @@
                 <option value="'Anton', sans-serif">Anton</option>
                 <option value="'Oswald', sans-serif">Oswald</option>
                 <option value="'Graduate', serif">Graduate</option>
-                <option value="'Russo One', sans-serif">Russo One</option>
             </optgroup>
             <optgroup label="Military & Tech">
                 <option value="'Black Ops One', cursive">Black Ops One</option>
@@ -100,20 +99,14 @@
                 <option value="'Bungee', cursive">Bungee</option>
                 <option value="'Racing Sans One', cursive">Racing Sans</option>
                 <option value="'Press Start 2P', cursive">Retro Pixel</option>
-                <option value="'Monoton', cursive">Neon Monoton</option>
             </optgroup>
-            <optgroup label="Horror & Aggressive">
+            <optgroup label="Horror">
                 <option value="'Nosifer', cursive">Nosifer</option>
                 <option value="'Creepster', cursive">Creepster</option>
                 <option value="'Metal Mania', cursive">Metal Mania</option>
                 <option value="'Shojumaru', cursive">Shojumaru</option>
             </optgroup>
-            <optgroup label="Classic & Clean">
-                <option value="'Permanent Marker', cursive">Marker</option>
-                <option value="'Special Elite', cursive">Typewriter</option>
-                <option value="'Segoe UI', sans-serif">Segoe UI</option>
-                <option value="'Roboto Condensed', sans-serif">Roboto Condensed</option>
-            </optgroup>
+            <option value="'Segoe UI', sans-serif">Segoe UI</option>
         </select>
         <hr>
         <label>ELEMENT SIZE</label><input type="range" id="fSize" min="5" max="500" value="100">
@@ -127,8 +120,8 @@
             <button onclick="deleteEl()" style="color:#ff3366">DELETE</button>
         </div>
         <hr>
-        <label>HEADLINE (Multi-line)</label><textarea id="hIn">FOR SALE</textarea>
-        <label>FOOTER (Multi-line)</label><textarea id="fIn">CONTACT: GRAVESTULLUK</textarea>
+        <label>HEADLINE</label><textarea id="hIn">FOR SALE</textarea>
+        <label>FOOTER</label><textarea id="fIn">CONTACT: GRAVESTULLUK</textarea>
         <div id="input-fields"></div>
         <hr>
         <button onclick="downloadPoster()" style="background: #ffffff; color: #000; border: 2px solid #0055ff;">DOWNLOAD PNG</button>
@@ -196,7 +189,13 @@
         function toggleGuides() { const d = $('v-guide').style.display === 'block' ? 'none' : 'block'; $('v-guide').style.display = $('h-guide').style.display = d; }
         function autoCenterEl() { if(activeEl) activeEl.style.left = (1000/2 - activeEl.offsetWidth/2) + "px"; }
 
-        $('fontSelect').onchange = () => { const f = $('fontSelect').value; $('hOut').style.fontFamily = f; $('fOut').style.fontFamily = f; };
+        $('fontSelect').onchange = () => { 
+            const f = $('fontSelect').value; 
+            $('hOut').style.fontFamily = f; 
+            $('fOut').style.fontFamily = f; 
+            $('ui').style.fontFamily = f; 
+        };
+        
         $('bgL').onchange = e => { const r = new FileReader(); r.onload = ev => $('poster-container').style.backgroundImage = `url(${ev.target.result})`; r.readAsDataURL(e.target.files[0]); };
         $('imgL').onchange = e => {
             Array.from(e.target.files).forEach(file => {
@@ -233,10 +232,7 @@
         function downloadPoster() {
             if(activeEl) activeEl.classList.remove('active-el');
             $('v-guide').style.display = $('h-guide').style.display = 'none';
-            html2canvas($("poster-container"), { 
-                scale: 2, width: 1000, height: 562, scrollX: -window.scrollX, scrollY: -window.scrollY, 
-                windowWidth: document.documentElement.offsetWidth, windowHeight: document.documentElement.offsetHeight, x: 0, y: 0 
-            }).then(canvas => {
+            html2canvas($("poster-container"), { scale: 2, width: 1000, height: 562, scrollX: -window.scrollX, scrollY: -window.scrollY, windowWidth: document.documentElement.offsetWidth, windowHeight: document.documentElement.offsetHeight, x: 0, y: 0 }).then(canvas => {
                 let link = document.createElement('a');
                 link.download = 'Shop_Tool_Poster.png';
                 link.href = canvas.toDataURL("image/png"); link.click();
@@ -262,6 +258,7 @@
                 for (let id in data.settings) { if ($(id)) $(id).value = data.settings[id]; }
                 for (let id in data.layout) { const el = $(id), dat = data.layout[id]; if (el) { el.style.left = dat.left; el.style.top = dat.top; el.dataset.rot = dat.rot || 0; if (dat.fontSize) el.style.fontSize = dat.fontSize; if (dat.family) el.style.fontFamily = dat.family; if (dat.transform) el.style.transform = dat.transform; } }
                 refreshAll(); updateColors();
+                if (data.layout.ui && data.layout.ui.family) { $('ui').style.fontFamily = data.layout.ui.family; }
             };
             reader.readAsText(event.target.files[0]);
         }
